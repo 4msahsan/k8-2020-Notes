@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: NetworkPolicy
+metadata:
+  creationTimestamp: "2020-02-24T23:20:11Z"
+  name: acc-nginx
+  namespace: my-namespace
+  resourceVersion: "326249"
+  selfLink: /api/v1/namespaces/my-namespace/services/nginx
+  uid: 1d6bca8c-08a3-478d-abbd-83cfe621da40
+spec:
+  clusterIP: 10.98.246.42
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: nginx
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

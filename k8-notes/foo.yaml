@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: foo2
+  name: foo2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: foo2
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: foo2
+    spec:
+      containers:
+      - image: dgkanatsios/simpleapp
+        name: simpleapp
+        ports:
+          - containerPort: 8080
+        resources: {}
+status: {}
