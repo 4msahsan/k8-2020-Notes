@@ -1,0 +1,98 @@
+[root@k8n0de01 k8-2020-card1]# kubectl get pods;
+NAME                        READY   STATUS        RESTARTS   AGE
+multitool-6d598c8f8-hdjzw   1/1     Running       7          10d
+nginx01-svc                 1/1     Terminating   0          10d
+server                      1/1     Running       0          67m
+[root@k8n0de01 k8-2020-card1]#
+
+
+[root@k8n0de01 k8-2020-card1]# cat pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: server
+spec:
+  containers:
+    -
+      image: nginx
+      name: nginx
+      volumeMounts:
+        -
+          mountPath: /git-repo
+          name: git-volume
+
+
+  volumes:
+    -
+     gitRepo:
+       repository: "https://github.com/4msahsan/kubernetes-volume"
+       revision: ""
+     name: git-volume
+[root@k8n0de01 k8-2020-card1]#
+
+
+####
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod server
+Name:         server
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Mon, 02 Mar 2020 13:27:22 -0800
+Labels:       <none>
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.7
+IPs:
+  IP:  10.32.0.7
+Containers:
+  nginx:
+    Container ID:   docker://fa911afcd0c7625c8f8153e3ddb3f060db998bfceef9a81abd5313526ada514a
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:380eb808e2a3b0dd954f92c1cae2f845e6558a15037efefcabc5b4e03d666d03
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 02 Mar 2020 13:27:28 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /git-repo from git-volume (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  git-volume:
+    Type:        GitRepo (a volume that is pulled from git when the pod is created)
+    Repository:  https://github.com/4msahsan/kubernetes-volume
+    Revision:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:          <none>
+[root@k8n0de01 k8-2020-card1]#
+
+
+###
+
+[root@k8n0de01 k8-2020-card1]# kubectl exec server -it bash
+root@server:/# ls
+bin  boot  dev  etc  git-repo  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@server:/# cat git-repo/kubernetes-volume/
+.git/      README.md
+root@server:/# cat git-repo/kubernetes-volume/README.md
+# kubernetes-volume
+
+this is for testing 24 feb 2020
+root@server:/#
+
+
