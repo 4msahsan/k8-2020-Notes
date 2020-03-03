@@ -1,0 +1,352 @@
+[root@k8n0de01 k8-2020-card1]# kubectl create -f rc2.yaml
+replicationcontroller/mysql created
+[root@k8n0de01 k8-2020-card1]# cat rc2.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: mysql
+  labels:
+    app: mysql-app
+spec:
+  replicas: 5
+  selector:
+  template:
+    metadata:
+      labels:
+        app: mysql-app
+        deployment: v1
+    spec:
+      containers:
+        -
+          env:
+            -
+             name: MYSQL_ROOT_PASSWORD
+             value: mysql
+          name: nginx
+          image: mysql
+          ports:
+            -
+              containerPort: 3306
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl get rc
+NAME    DESIRED   CURRENT   READY   AGE
+mysql   5         5         5       33s
+[root@k8n0de01 k8-2020-card1]# kubectl get pods;
+NAME                           READY   STATUS        RESTARTS   AGE
+hello-world-55cc89c496-mm44k   1/1     Running       1          21h
+hello-world-55cc89c496-xk55h   1/1     Running       1          21h
+hello-world-55cc89c496-xlw9l   1/1     Running       1          21h
+multitool-6d598c8f8-hdjzw      1/1     Running       8          11d
+mysql-5g4q4                    1/1     Running       0          38s
+mysql-hmxtg                    1/1     Running       0          38s
+mysql-pkgs5                    1/1     Running       0          38s
+mysql-twz7j                    1/1     Running       0          38s
+mysql-wksp8                    1/1     Running       0          38s
+nginx01-svc                    1/1     Terminating   0          10d
+server                         1/1     Running       1          22h
+[root@k8n0de01 k8-2020-card1]# kubectl get pods --show-labels;
+NAME                           READY   STATUS        RESTARTS   AGE   LABELS
+hello-world-55cc89c496-mm44k   1/1     Running       1          21h   pod-template-hash=55cc89c496,run=hello-world
+hello-world-55cc89c496-xk55h   1/1     Running       1          21h   pod-template-hash=55cc89c496,run=hello-world
+hello-world-55cc89c496-xlw9l   1/1     Running       1          21h   pod-template-hash=55cc89c496,run=hello-world
+multitool-6d598c8f8-hdjzw      1/1     Running       8          11d   pod-template-hash=6d598c8f8,run=multitool
+mysql-5g4q4                    1/1     Running       0          66s   app=mysql-app,deployment=v1
+mysql-hmxtg                    1/1     Running       0          66s   app=mysql-app,deployment=v1
+mysql-pkgs5                    1/1     Running       0          66s   app=mysql-app,deployment=v1
+mysql-twz7j                    1/1     Running       0          66s   app=mysql-app,deployment=v1
+mysql-wksp8                    1/1     Running       0          66s   app=mysql-app,deployment=v1
+nginx01-svc                    1/1     Terminating   0          10d   run=nginx01-svc
+server                         1/1     Running       1          22h   <none>
+[root@k8n0de01 k8-2020-card1]#
+
+
+[root@k8n0de01 k8-2020-card1]# kubectl get rc
+NAME    DESIRED   CURRENT   READY   AGE
+mysql   5         5         5       108s
+[root@k8n0de01 k8-2020-card1]# kubectl describe rc mysql
+Name:         mysql
+Namespace:    my-namespace
+Selector:     app=mysql-app,deployment=v1
+Labels:       app=mysql-app
+Annotations:  <none>
+Replicas:     5 current / 5 desired
+Pods Status:  5 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=mysql-app
+           deployment=v1
+  Containers:
+   nginx:
+    Image:      mysql
+    Port:       3306/TCP
+    Host Port:  0/TCP
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:                 <none>
+  Volumes:                  <none>
+Events:
+  Type    Reason            Age   From                    Message
+  ----    ------            ----  ----                    -------
+  Normal  SuccessfulCreate  118s  replication-controller  Created pod: mysql-pkgs5
+  Normal  SuccessfulCreate  118s  replication-controller  Created pod: mysql-wksp8
+  Normal  SuccessfulCreate  118s  replication-controller  Created pod: mysql-twz7j
+  Normal  SuccessfulCreate  118s  replication-controller  Created pod: mysql-5g4q4
+  Normal  SuccessfulCreate  118s  replication-controller  Created pod: mysql-hmxtg
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe pods mysql-hmxtg
+Name:         mysql-hmxtg
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 03 Mar 2020 12:09:50 -0800
+Labels:       app=mysql-app
+              deployment=v1
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.11
+IPs:
+  IP:           10.32.0.11
+Controlled By:  ReplicationController/mysql
+Containers:
+  nginx:
+    Container ID:   docker://14a90de9cc3c3d35c8a7ce12dc676d06239cd4f353822c540737dc774f4b242a
+    Image:          mysql
+    Image ID:       docker-pullable://docker.io/mysql@sha256:230d501a0c971221aef647661b331c56587fc5bd4a465dfa132c4d2b45835163
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 03 Mar 2020 12:09:58 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-hmxtg to k8n0de01.example.com
+  Normal  Pulling    2m43s      kubelet, k8n0de01.example.com  Pulling image "mysql"
+  Normal  Pulled     2m38s      kubelet, k8n0de01.example.com  Successfully pulled image "mysql"
+  Normal  Created    2m38s      kubelet, k8n0de01.example.com  Created container nginx
+  Normal  Started    2m37s      kubelet, k8n0de01.example.com  Started container nginx
+[root@k8n0de01 k8-2020-card1]#
+
+
+@@@@
+hello-world-55cc89c496-mm44k   1/1     Running       1          21h     10.32.0.10   k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xk55h   1/1     Running       1          21h     10.32.0.2    k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xlw9l   1/1     Running       1          21h     10.32.0.9    k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-hdjzw      1/1     Running       8          11d     10.32.0.4    k8n0de01.example.com   <none>           <none>
+mysql-45n6m                    1/1     Running       0          4m28s   10.32.0.13   k8n0de01.example.com   <none>           <none>
+mysql-9xkf7                    1/1     Running       0          4m28s   10.32.0.14   k8n0de01.example.com   <none>           <none>
+mysql-kvb4b                    1/1     Running       0          4m28s   10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-vk5f8                    1/1     Running       0          4m28s   10.32.0.15   k8n0de01.example.com   <none>           <none>
+mysql-w4k7w                    1/1     Running       0          4m28s   10.32.0.11   k8n0de01.example.com   <none>           <none>
+nginx01-svc                    1/1     Terminating   0          10d     10.38.0.1    k8n0de02.example.com   <none>           <none>
+server                         1/1     Running       1          22h     10.32.0.7    k8n0de01.example.com   <none>           <none>
+mysql-v1-j7wwb                 0/1     Pending       0          0s      <none>       <none>                 <none>           <none>
+mysql-v1-j7wwb                 0/1     Pending       0          0s      <none>       k8n0de01.example.com   <none>           <none>
+mysql-v1-j7wwb                 0/1     ContainerCreating   0          1s      <none>       k8n0de01.example.com   <none>           <none>
+mysql-v1-j7wwb                 1/1     Running             0          26s     10.32.0.16   k8n0de01.example.com   <none>           <none>
+mysql-vk5f8                    1/1     Terminating         0          6m22s   10.32.0.15   k8n0de01.example.com   <none>           <none>
+mysql-v1-fj92m                 0/1     Pending             0          0s      <none>       <none>                 <none>           <none>
+mysql-v1-fj92m                 0/1     Pending             0          0s      <none>       k8n0de01.example.com   <none>           <none>
+mysql-v1-fj92m                 0/1     ContainerCreating   0          0s      <none>       k8n0de01.example.com   <none>           <none>
+mysql-vk5f8                    0/1     Terminating         0          6m26s   <none>       k8n0de01.example.com   <none>           <none>
+mysql-vk5f8                    0/1     Terminating         0          6m27s   <none>       k8n0de01.example.com   <none>           <none>
+mysql-vk5f8                    0/1     Terminating         0          6m27s   <none>       k8n0de01.example.com   <none>           <none>
+mysql-v1-fj92m                 1/1     Running             0          3s      10.32.0.15   k8n0de01.example.com   <none>           <none>
+
+
+[root@k8n0de01 k8-2020-card1]# kubectl get pods -o wide;
+NAME                           READY   STATUS        RESTARTS   AGE   IP           NODE                   NOMINATED NODE   READINESS GATES
+hello-world-55cc89c496-mm44k   1/1     Running       1          21h   10.32.0.10   k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xk55h   1/1     Running       1          21h   10.32.0.2    k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xlw9l   1/1     Running       1          21h   10.32.0.9    k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-hdjzw      1/1     Running       8          11d   10.32.0.4    k8n0de01.example.com   <none>           <none>
+mysql-45n6m                    1/1     Running       0          22s   10.32.0.13   k8n0de01.example.com   <none>           <none>
+mysql-9xkf7                    1/1     Running       0          22s   10.32.0.14   k8n0de01.example.com   <none>           <none>
+mysql-kvb4b                    1/1     Running       0          22s   10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-vk5f8                    1/1     Running       0          22s   10.32.0.15   k8n0de01.example.com   <none>           <none>
+mysql-w4k7w                    1/1     Running       0          22s   10.32.0.11   k8n0de01.example.com   <none>           <none>
+nginx01-svc                    1/1     Terminating   0          10d   10.38.0.1    k8n0de02.example.com   <none>           <none>
+server                         1/1     Running       1          22h   10.32.0.7    k8n0de01.example.com   <none>           <none>
+[root@k8n0de01 k8-2020-card1]# kubectl rolling-update mysql -f rc3.yaml --timeout=1m
+Command "rolling-update" is deprecated, use "rollout" instead
+Created mysql-v1
+Scaling up mysql-v1 from 0 to 5, scaling down mysql from 5 to 0 (keep 5 pods available, don't exceed 6 pods)
+Scaling mysql-v1 up to 1
+Scaling mysql down to 4
+Scaling mysql-v1 up to 2
+Scaling mysql down to 3
+Scaling mysql-v1 up to 3
+
+mysql-v1-8bbnt                 1/1     Running             0          2s      10.32.0.13   k8n0de01.example.com   <none>           <none>
+mysql-kvb4b                    1/1     Terminating         0          9m41s   10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-kvb4b                    0/1     Terminating         0          9m44s   10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-v1-f8xtw                 0/1     Pending             0          0s      <none>       <none>                 <none>           <none>
+mysql-v1-f8xtw                 0/1     Pending             0          1s      <none>       k8n0de01.example.com   <none>           <none>
+mysql-v1-f8xtw                 0/1     ContainerCreating   0          1s      <none>       k8n0de01.example.com   <none>           <none>
+mysql-v1-f8xtw                 1/1     Running             0          3s      10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-kvb4b                    0/1     Terminating         0          9m52s   10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-kvb4b                    0/1     Terminating         0          9m52s   10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-w4k7w                    1/1     Terminating         0          10m     10.32.0.11   k8n0de01.example.com   <none>           <none>
+mysql-w4k7w                    0/1     Terminating         0          10m     10.32.0.11   k8n0de01.example.com   <none>           <none>
+mysql-w4k7w                    0/1     Terminating         0          10m     10.32.0.11   k8n0de01.example.com   <none>           <none>
+mysql-w4k7w                    0/1     Terminating         0          10m     10.32.0.11   k8n0de01.example.com   <none>           <none>
+mysql-v1-fj92m                 1/1     Running             0          4m29s   10.32.0.15   k8n0de01.example.com   <none>           <none>
+mysql-v1-8bbnt                 1/1     Running             0          2m17s   10.32.0.13   k8n0de01.example.com   <none>           <none>
+mysql-v1-j7wwb                 1/1     Running             0          5m36s   10.32.0.16   k8n0de01.example.com   <none>           <none>
+mysql-v1-f8xtw                 1/1     Running             0          70s     10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-v1-bpb2r                 1/1     Running             0          3m23s   10.32.0.14   k8n0de01.example.com   <none>           <none>
+mysql-v1-bpb2r                 1/1     Running             0          3m28s   10.32.0.14   k8n0de01.example.com   <none>           <none>
+mysql-v1-8bbnt                 1/1     Running             0          2m22s   10.32.0.13   k8n0de01.example.com   <none>           <none>
+mysql-v1-j7wwb                 1/1     Running             0          5m41s   10.32.0.16   k8n0de01.example.com   <none>           <none>
+mysql-v1-fj92m                 1/1     Running             0          4m34s   10.32.0.15   k8n0de01.example.com   <none>           <none>
+mysql-v1-f8xtw                 1/1     Running             0          75s     10.32.0.12   k8n0de01.example.com   <none>           <none>
+
+
+[root@k8n0de01 k8-2020-card1]# kubectl rolling-update mysql -f rc3.yaml --timeout=1m
+Command "rolling-update" is deprecated, use "rollout" instead
+Created mysql-v1
+Scaling up mysql-v1 from 0 to 5, scaling down mysql from 5 to 0 (keep 5 pods available, don't exceed 6 pods)
+Scaling mysql-v1 up to 1
+Scaling mysql down to 4
+Scaling mysql-v1 up to 2
+Scaling mysql down to 3
+Scaling mysql-v1 up to 3
+Scaling mysql down to 2
+Scaling mysql-v1 up to 4
+Scaling mysql down to 1
+Scaling mysql-v1 up to 5
+Scaling mysql down to 0
+Update succeeded. Deleting old controller: mysql
+Renaming mysql-v1 to mysql
+replicationcontroller/mysql rolling updated
+[root@k8n0de01 k8-2020-card1]#
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod mysql-v1-8bbnt
+Name:         mysql-v1-8bbnt
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 03 Mar 2020 12:29:17 -0800
+Labels:       app=mysql-app
+              deployment=v2
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.13
+IPs:
+  IP:           10.32.0.13
+Controlled By:  ReplicationController/mysql
+Containers:
+  mysql:
+    Container ID:   docker://9259debe0d19770f627abfc3dba0ce37c0d0b4a942098b52ffb8a75d2179db3d
+    Image:          mysql:5.5
+    Image ID:       docker-pullable://docker.io/mysql@sha256:12da85ab88aedfdf39455872fb044f607c32fdc233cd59f1d26769fbf439b045
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 03 Mar 2020 12:29:19 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-v1-8bbnt to k8n0de01.example.com
+  Normal  Pulled     3m13s      kubelet, k8n0de01.example.com  Container image "mysql:5.5" already present on machine
+  Normal  Created    3m12s      kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    3m12s      kubelet, k8n0de01.example.com  Started container mysql
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod mysql-v1-8bbnt
+Name:         mysql-v1-8bbnt
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 03 Mar 2020 12:29:17 -0800
+Labels:       app=mysql-app
+              deployment=v2
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.13
+IPs:
+  IP:           10.32.0.13
+Controlled By:  ReplicationController/mysql
+Containers:
+  mysql:
+    Container ID:   docker://9259debe0d19770f627abfc3dba0ce37c0d0b4a942098b52ffb8a75d2179db3d
+    Image:          mysql:5.5
+    Image ID:       docker-pullable://docker.io/mysql@sha256:12da85ab88aedfdf39455872fb044f607c32fdc233cd59f1d26769fbf439b045
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 03 Mar 2020 12:29:19 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-v1-8bbnt to k8n0de01.example.com
+  Normal  Pulled     3m13s      kubelet, k8n0de01.example.com  Container image "mysql:5.5" already present on machine
+  Normal  Created    3m12s      kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    3m12s      kubelet, k8n0de01.example.com  Started container mysql
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
