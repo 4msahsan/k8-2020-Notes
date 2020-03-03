@@ -1,0 +1,158 @@
+PG## 180
+@@@ NodePort
+[root@k8n0de01 k8-2020-card1]# kubectl get svc
+NAME    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+nginx   ClusterIP   10.108.24.192   <none>        80/TCP    4h21m
+[root@k8n0de01 k8-2020-card1]# kubectl get pods;
+NAME                           READY   STATUS        RESTARTS   AGE
+hello-world-55cc89c496-mm44k   1/1     Running       0          63m
+hello-world-55cc89c496-xk55h   1/1     Running       0          63m
+hello-world-55cc89c496-xlw9l   1/1     Running       0          63m
+multitool-6d598c8f8-hdjzw      1/1     Running       7          10d
+nginx01-svc                    1/1     Terminating   0          10d
+server                         1/1     Running       0          144m
+[root@k8n0de01 k8-2020-card1]#
+
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl get deploy
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE
+hello-world   3/3     3            3           64m
+multitool     1/1     1            1           13d
+[root@k8n0de01 k8-2020-card1]# kubectl get rs
+NAME                     DESIRED   CURRENT   READY   AGE
+hello-world-55cc89c496   3         3         3       65m
+multitool-6d598c8f8      1         1         1       13d
+[root@k8n0de01 k8-2020-card1]# kubectl expose rs hello-world-55cc89c496 --port=80 --type=NodePort
+service/hello-world-55cc89c496 exposed
+[root@k8n0de01 k8-2020-card1]# kubectl get pods
+NAME                           READY   STATUS        RESTARTS   AGE
+hello-world-55cc89c496-mm44k   1/1     Running       0          66m
+hello-world-55cc89c496-xk55h   1/1     Running       0          66m
+hello-world-55cc89c496-xlw9l   1/1     Running       0          66m
+multitool-6d598c8f8-hdjzw      1/1     Running       7          10d
+nginx01-svc                    1/1     Terminating   0          10d
+server                         1/1     Running       0          146m
+[root@k8n0de01 k8-2020-card1]# kubectl get svcl
+error: the server doesn't have a resource type "svcl"
+[root@k8n0de01 k8-2020-card1]# kubectl get svc
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+hello-world-55cc89c496   NodePort    10.98.25.185    <none>        80:32418/TCP   20s
+nginx                    ClusterIP   10.108.24.192   <none>        80/TCP         4h24m
+[root@k8n0de01 k8-2020-card1]# kubectl describe hello-world-55cc89c496
+error: the server doesn't have a resource type "hello-world-55cc89c496"
+[root@k8n0de01 k8-2020-card1]# kubectl describe svc hello-world-55cc89c496
+Name:                     hello-world-55cc89c496
+Namespace:                my-namespace
+Labels:                   pod-template-hash=55cc89c496
+                          run=hello-world
+Annotations:              <none>
+Selector:                 pod-template-hash=55cc89c496,run=hello-world
+Type:                     NodePort
+IP:                       10.98.25.185
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  32418/TCP
+Endpoints:                10.32.0.10:80,10.32.0.8:80,10.32.0.9:80
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+[root@k8n0de01 k8-2020-card1]#
+
+
+@@@@
+root@k8n0de01 k8-2020-card1]# kubectl describe rs hello-world-55cc89c496
+Name:           hello-world-55cc89c496
+Namespace:      my-namespace
+Selector:       pod-template-hash=55cc89c496,run=hello-world
+Labels:         pod-template-hash=55cc89c496
+                run=hello-world
+Annotations:    deployment.kubernetes.io/desired-replicas: 3
+                deployment.kubernetes.io/max-replicas: 4
+                deployment.kubernetes.io/revision: 1
+Controlled By:  Deployment/hello-world
+Replicas:       3 current / 3 desired
+Pods Status:    3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  pod-template-hash=55cc89c496
+           run=hello-world
+  Containers:
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl expose rs hello-world-55cc89c496 --port=80 --type=NodePort --dry-run -o yaml NotePod-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    pod-template-hash: 55cc89c496
+    run: hello-world
+  name: hello-world-55cc89c496
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    pod-template-hash: 55cc89c496
+    run: hello-world
+  type: NodePort
+status:
+  loadBalancer: {}
+
+@@@@
+
+ot@k8n0de01 k8-2020-card1]# kubectl get svc;
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+hello-world-55cc89c496   NodePort    10.98.25.185    <none>        80:32418/TCP   4m27s
+nginx                    ClusterIP   10.108.24.192   <none>        80/TCP         4h28m
+[root@k8n0de01 k8-2020-card1]# curl  10.98.25.185
+<html>
+<head>
+        <title>Hello world!</title>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+        <style>
+        body {
+                background-color: white;
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl get svc
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+hello-world-55cc89c496   NodePort    10.98.25.185    <none>        80:32418/TCP   5m57s
+nginx                    ClusterIP   10.108.24.192   <none>        80/TCP         4h30m
+[root@k8n0de01 k8-2020-card1]# curl 10.0.2.20:32418
+<html>
+<head>
+        <title>Hello world!</title>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+        <style>
+        body {
+                background-color: white;
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl get svc
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+hello-world-55cc89c496   NodePort    10.98.25.185    <none>        80:32418/TCP   7m40s
+nginx                    ClusterIP   10.108.24.192   <none>        80/TCP         4h32m
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl get pods -o wide;
+NAME                           READY   STATUS        RESTARTS   AGE    IP           NODE                   NOMINATED NODE   READINESS GATES
+hello-world-55cc89c496-mm44k   1/1     Running       0          74m    10.32.0.10   k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xk55h   1/1     Running       0          74m    10.32.0.8    k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xlw9l   1/1     Running       0          74m    10.32.0.9    k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-hdjzw      1/1     Running       7          10d    10.32.0.4    k8n0de01.example.com   <none>           <none>
+nginx01-svc                    1/1     Terminating   0          10d    10.38.0.1    k8n0de02.example.com   <none>           <none>
+server                         1/1     Running       0          155m   10.32.0.7    k8n0de01.example.com   <none>           <none>
+[root@k8n0de01 k8-2020-card1]#
+
+@@@@
+
+ot@k8n0de01 k8-2020-card1]# kubectl get svc hello-world-55cc89c496
+NAME                     TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+hello-world-55cc89c496   NodePort   10.98.25.185   <none>        80:32418/TCP   9m12s
+[root@k8n0de01 k8-2020-card1]#
+
+@@@@
+
