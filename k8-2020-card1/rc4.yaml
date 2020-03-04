@@ -5,7 +5,7 @@ metadata:
   labels:
     app: mysql-app
 spec:
-  replicas: 5
+  replicas: 3
   selector:
     app: mysql-app
     deployment: v2
