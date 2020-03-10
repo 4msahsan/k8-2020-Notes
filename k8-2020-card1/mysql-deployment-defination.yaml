@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mysql-deploy
+  name: mysql-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mysql-deploy
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+         maxUnavailable: '75%'
+         maxSurge: '30%'
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mysql-deploy
+    spec:
+      containers:
+      - image: mysql:5.5
+        command: [ "/bin/bash", "-ce", "tail -f /dev/null" ]
+        name: mysql
+        resources: {}
+status: {}

@@ -1,0 +1,408 @@
+@@@@
+kubectl create deploy --image=mysql:5.5  mysql-deploy   --dry-run  -o yaml > mysql-deployment-defination.yam
+
+[root@k8n0de01 k8-2020-card1]# cat mysql-deployment-defination.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mysql-deploy
+  name: mysql-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mysql-deploy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+         maxUnavailable: '75%'
+         maxSurge: '30%'
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mysql-deploy
+    spec:
+      containers:
+      - image: mysql:5.5
+        command: [ "/bin/bash", "-ce", "tail -f /dev/null" ]
+        name: mysql
+        resources: {}
+status: {}
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+multitool          1/1     1            1           21d
+myapp-deployment   3/3     3            3           3h50m
+mysql-deploy       3/3     3            3           113s
+[root@k8n0de01 k8-2020-card1]# kubectl get pods -o wide;
+NAME                                READY   STATUS    RESTARTS   AGE     IP          NODE                   NOMINATED NODE   READINESS GATES
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          18d     <none>      k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-ngt77           1/1     Running   0          6h54m   10.40.0.1   k8n0de03.example.com   <none>           <none>
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   0          3h51m   10.32.0.2   k8n0de01.example.com   <none>           <none>
+myapp-deployment-76754b66c8-qphsz   1/1     Running   0          3h51m   10.40.0.3   k8n0de03.example.com   <none>           <none>
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   0          3h51m   10.38.0.2   k8n0de02.example.com   <none>           <none>
+mysql-deploy-6c9fb594fc-b2cc9       1/1     Running   0          2m2s    10.32.0.6   k8n0de01.example.com   <none>           <none>
+mysql-deploy-6c9fb594fc-px2hx       1/1     Running   0          2m2s    10.38.0.3   k8n0de02.example.com   <none>           <none>
+mysql-deploy-6c9fb594fc-rgvqq       1/1     Running   0          2m2s    10.40.0.4   k8n0de03.example.com   <none>           <none>
+nginx                               1/1     Running   0          4h42m   10.38.0.1   k8n0de02.example.com   <none>           <none>
+server                              1/1     Running   5          8d      10.32.0.3   k8n0de01.example.com   <none>           <none>
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl describe deploy mysql-deploy
+Name:                   mysql-deploy
+Namespace:              my-namespace
+CreationTimestamp:      Tue, 10 Mar 2020 16:11:25 -0700
+Labels:                 app=mysql-deploy
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=mysql-deploy
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  75% max unavailable, 30% max surge
+Pod Template:
+  Labels:  app=mysql-deploy
+  Containers:
+   mysql:
+    Image:      mysql:5.5
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   mysql-deploy-6c9fb594fc (3/3 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  2m27s  deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 3
+[root@k8n0de01 k8-2020-card1]#
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod mysql-deploy-6c9fb594fc-b2cc9
+Name:         mysql-deploy-6c9fb594fc-b2cc9
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 10 Mar 2020 16:11:25 -0700
+Labels:       app=mysql-deploy
+              pod-template-hash=6c9fb594fc
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.6
+IPs:
+  IP:           10.32.0.6
+Controlled By:  ReplicaSet/mysql-deploy-6c9fb594fc
+Containers:
+  mysql:
+    Container ID:  docker://083bc0b7d2e2224a316ac5d168f89d65fe4c071378dc7a06bacd3152d9ba9a0f
+    Image:         mysql:5.5
+    Image ID:      docker-pullable://docker.io/mysql@sha256:12da85ab88aedfdf39455872fb044f607c32fdc233cd59f1d26769fbf439b045
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    State:          Running
+      Started:      Tue, 10 Mar 2020 16:11:26 -0700
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-deploy-6c9fb594fc-b2cc9 to k8n0de01.example.com
+  Normal  Pulled     3m7s       kubelet, k8n0de01.example.com  Container image "mysql:5.5" already present on machine
+  Normal  Created    3m7s       kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    3m7s       kubelet, k8n0de01.example.com  Started container mysql
+[root@k8n0de01 k8-2020-card1]#
+@@@@
+
+ot@k8n0de01 k8-2020-card1]# kubectl get deployment;
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+multitool          1/1     1            1           21d
+myapp-deployment   3/3     3            3           3h53m
+mysql-deploy       3/3     3            3           4m5s
+[root@k8n0de01 k8-2020-card1]# kubectl rollout status deployment/mysql-deploy
+deployment "mysql-deploy" successfully rolled out
+[root@k8n0de01 k8-2020-card1]#
+@@@
+
+[root@k8n0de01 k8-2020-card1]# kubectl set image deployment/mysql-deploy mysql=mysql:latest
+deployment.apps/mysql-deploy image updated
+[root@k8n0de01 k8-2020-card1]# kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+multitool          1/1     1            1           21d
+myapp-deployment   3/3     3            3           3h57m
+mysql-deploy       2/3     3            2           8m25s
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl describe deploy mysql-deploy
+Name:                   mysql-deploy
+Namespace:              my-namespace
+CreationTimestamp:      Tue, 10 Mar 2020 16:11:25 -0700
+Labels:                 app=mysql-deploy
+Annotations:            deployment.kubernetes.io/revision: 2
+Selector:               app=mysql-deploy
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  75% max unavailable, 30% max surge
+Pod Template:
+  Labels:  app=mysql-deploy
+  Containers:
+   mysql:
+    Image:      mysql:latest
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   mysql-deploy-7f74bdcb78 (3/3 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  9m19s  deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 3
+  Normal  ScalingReplicaSet  81s    deployment-controller  Scaled up replica set mysql-deploy-7f74bdcb78 to 1
+  Normal  ScalingReplicaSet  81s    deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  81s    deployment-controller  Scaled up replica set mysql-deploy-7f74bdcb78 to 3
+  Normal  ScalingReplicaSet  79s    deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 0
+[root@k8n0de01 k8-2020-card1]#
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod mysql-deploy-7f74bdcb78-5d94p
+Name:         mysql-deploy-7f74bdcb78-5d94p
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 10 Mar 2020 16:19:23 -0700
+Labels:       app=mysql-deploy
+              pod-template-hash=7f74bdcb78
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.8
+IPs:
+  IP:           10.32.0.8
+Controlled By:  ReplicaSet/mysql-deploy-7f74bdcb78
+Containers:
+  mysql:
+    Container ID:  docker://0ac3a4f7456c1062f7b78ac6ac5e6f16a625e3307fd84872ba8a607836812e05
+    Image:         mysql:latest
+    Image ID:      docker-pullable://docker.io/mysql@sha256:4a30434ce03d2fa396d0414f075ad9ca9b0b578f14ea5685e24dcbf789450a2c
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    State:          Running
+      Started:      Tue, 10 Mar 2020 16:19:50 -0700
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-deploy-7f74bdcb78-5d94p to k8n0de01.example.com
+  Normal  Pulling    2m31s      kubelet, k8n0de01.example.com  Pulling image "mysql:latest"
+  Normal  Pulled     2m8s       kubelet, k8n0de01.example.com  Successfully pulled image "mysql:latest"
+  Normal  Created    2m5s       kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    2m5s       kubelet, k8n0de01.example.com  Started container mysql
+[root@k8n0de01 k8-2020-card1]#
+
+@@@@
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe  deploy mysql-deploy
+Name:                   mysql-deploy
+Namespace:              my-namespace
+CreationTimestamp:      Tue, 10 Mar 2020 16:11:25 -0700
+Labels:                 app=mysql-deploy
+Annotations:            deployment.kubernetes.io/revision: 4
+Selector:               app=mysql-deploy
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  75% max unavailable, 30% max surge
+Pod Template:
+  Labels:  app=mysql-deploy
+  Containers:
+   mysql:
+    Image:      mysql:5.6
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   mysql-deploy-5549b99564 (3/3 replicas created)
+Events:
+  Type    Reason             Age                 From                   Message
+  ----    ------             ----                ----                   -------
+  Normal  ScalingReplicaSet  13m                 deployment-controller  Scaled up replica set mysql-deploy-7f74bdcb78 to 1
+  Normal  ScalingReplicaSet  13m                 deployment-controller  Scaled up replica set mysql-deploy-7f74bdcb78 to 3
+  Normal  ScalingReplicaSet  4m3s (x2 over 21m)  deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 3
+  Normal  ScalingReplicaSet  4m3s                deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  4m3s                deployment-controller  Scaled down replica set mysql-deploy-7f74bdcb78 to 1
+  Normal  ScalingReplicaSet  4m1s                deployment-controller  Scaled down replica set mysql-deploy-7f74bdcb78 to 0
+  Normal  ScalingReplicaSet  43s (x2 over 13m)   deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  43s                 deployment-controller  Scaled up replica set mysql-deploy-5549b99564 to 1
+  Normal  ScalingReplicaSet  42s                 deployment-controller  (combined from similar events): Scaled up replica set mysql-deploy-5549b99564 to 3
+  Normal  ScalingReplicaSet  40s (x2 over 13m)   deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 0
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl get pods;
+NAME                                READY   STATUS    RESTARTS   AGE
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          18d
+multitool-6d598c8f8-ngt77           1/1     Running   0          7h15m
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   0          4h11m
+myapp-deployment-76754b66c8-qphsz   1/1     Running   0          4h11m
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   0          4h11m
+mysql-deploy-5549b99564-88pvh       1/1     Running   0          104s
+mysql-deploy-5549b99564-m2x69       1/1     Running   0          105s
+mysql-deploy-5549b99564-mnh8n       1/1     Running   0          104s
+nginx                               1/1     Running   0          5h2m
+server                              1/1     Running   5          8d
+[root@k8n0de01 k8-2020-card1]# kubectl rollout history deployment/mysql-deploy
+deployment.apps/mysql-deploy
+REVISION  CHANGE-CAUSE
+2         <none>
+3         <none>
+4         <none>
+
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl rollout history deployment/mysql-deploy
+deployment.apps/mysql-deploy
+REVISION  CHANGE-CAUSE
+2         <none>
+3         <none>
+4         <none>
+
+[root@k8n0de01 k8-2020-card1]# kubectl rollout history deployment/mysql-deploy --revision=4
+deployment.apps/mysql-deploy with revision #4
+Pod Template:
+  Labels:       app=mysql-deploy
+        pod-template-hash=5549b99564
+  Containers:
+   mysql:
+    Image:      mysql:5.6
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+[root@k8n0de01 k8-2020-card1]# kubectl rollout history deployment/mysql-deploy --revision=2
+deployment.apps/mysql-deploy with revision #2
+Pod Template:
+  Labels:       app=mysql-deploy
+        pod-template-hash=7f74bdcb78
+  Containers:
+   mysql:
+    Image:      mysql:latest
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+[root@k8n0de01 k8-2020-card1]# kubectl rollout history deployment/mysql-deploy --revision=3
+deployment.apps/mysql-deploy with revision #3
+Pod Template:
+  Labels:       app=mysql-deploy
+        pod-template-hash=6c9fb594fc
+  Containers:
+   mysql:
+    Image:      mysql:5.5
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+[root@k8n0de01 k8-2020-card1]# kubectl rollout history deployment/mysql-deploy --revision=1
+error: unable to find the specified revision
+[root@k8n0de01 k8-2020-card1]#
+
