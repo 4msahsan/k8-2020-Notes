@@ -1,0 +1,110 @@
+[root@k8n0de01 ConfigMap]# kubectl create configmap mysql-config-2 --from-file=mysql/env/mysql.root.password  --from-file=mysql/env/mysql.allow.empty.password
+configmap/mysql-config-2 created
+[root@k8n0de01 ConfigMap]# kubectl get config-map
+error: the server doesn't have a resource type "config-map"
+[root@k8n0de01 ConfigMap]# kubectl get configmap
+NAME             DATA   AGE
+anotherone       0      25d
+configmap2       1      25d
+configmap3       2      25d
+configmap4       1      25d
+mysql-config     5      69m
+mysql-config-2   2      13s
+option           1      25d
+special-config   0      25d
+[root@k8n0de01 ConfigMap]# kubectl describe configmap mysql-config-2
+Name:         mysql-config-2
+Namespace:    my-namespace
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+mysql.allow.empty.password:
+----
+no
+
+mysql.root.password:
+----
+mysql
+
+Events:  <none>
+[root@k8n0de01 ConfigMap]#
+
+@@@@
+[root@k8n0de01 ConfigMap]# kubectl get configmap mysql-config-2 -o yaml
+apiVersion: v1
+data:
+  mysql.allow.empty.password: |
+    no
+  mysql.root.password: |
+    mysql
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2020-03-11T21:47:44Z"
+  name: mysql-config-2
+  namespace: my-namespace
+  resourceVersion: "749861"
+  selfLink: /api/v1/namespaces/my-namespace/configmaps/mysql-config-2
+  uid: 5fd194e7-e56e-4e0d-975c-f2bc3aeead70
+[root@k8n0de01 ConfigMap]#
+
+@@@@
+[root@k8n0de01 ConfigMap]# cat mysql-ConfigMap2.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: mysql
+  labels:
+    app: mysql-app
+spec:
+  replicas: 3
+  selector:
+    app: mysql-app
+    deployment: v1
+  template:
+    metadata:
+      labels:
+        app: mysql-app
+        deployment: v1
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:5.6
+          command: [ "/bin/bash", "-ce", "tail -f /dev/null" ]
+          env:
+            -
+             name: MYSQL_ROOT_PASSWORD
+             valueFrom:
+               configMapKeyRef:
+                 key: mysql.root.password
+                 name: mysql-config
+          name: mysql
+          image: mysql
+          ports:
+            -
+              containerPort: 3306
+
+[root@k8n0de01 ConfigMap]# kubectl get rc
+NAME    DESIRED   CURRENT   READY   AGE
+mysql   3         3         3       30s
+[root@k8n0de01 ConfigMap]# kubectl get pods;
+NAME                                READY   STATUS    RESTARTS   AGE
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          19d
+multitool-6d598c8f8-ngt77           1/1     Running   1          29h
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   1          26h
+myapp-deployment-76754b66c8-qphsz   1/1     Running   1          26h
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   1          26h
+mysql-deploy-6c9fb594fc-nh9p9       1/1     Running   0          4h48m
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running   0          4h48m
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running   0          4h48m
+mysql-j5cvq                         1/1     Running   0          33s
+mysql-kn7sn                         1/1     Running   0          33s
+mysql-pk9rf                         1/1     Running   0          33s
+nginx                               1/1     Running   1          27h
+server                              1/1     Running   6          9d
+[root@k8n0de01 ConfigMap]#
+
+
+@@@
+

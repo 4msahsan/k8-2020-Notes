@@ -1,0 +1,375 @@
+[root@k8n0de01 env]# ls -ltr
+total 20
+-rw-r--r-- 1 root root 6 Mar 11 11:19 mysql.root.password
+-rw-r--r-- 1 root root 6 Mar 11 11:21 mysql.user
+-rw-r--r-- 1 root root 6 Mar 11 11:22 mysql.password
+-rw-r--r-- 1 root root 3 Mar 11 11:23 mysql.allow.empty.password
+-rw-r--r-- 1 root root 6 Mar 11 11:23 mysql.database
+[root@k8n0de01 env]# cat mysql.*
+no
+mysql
+mysql
+mysql
+mysql
+[root@k8n0de01 env]# kubectl get configmaps;
+NAME             DATA   AGE
+anotherone       0      25d
+configmap2       1      25d
+configmap3       2      25d
+configmap4       1      25d
+option           1      25d
+special-config   0      25d
+[root@k8n0de01 env]#
+
+[root@k8n0de01 ConfigMap]# kubectl create configmap mysql-config --from-file=mysql/env
+configmap/mysql-config created
+[root@k8n0de01 ConfigMap]# kubectl  get configmap
+NAME             DATA   AGE
+anotherone       0      25d
+configmap2       1      25d
+configmap3       2      25d
+configmap4       1      25d
+mysql-config     5      8s
+option           1      25d
+special-config   0      25d
+[root@k8n0de01 ConfigMap]# kubectl describe configmap mysql-config
+Name:         mysql-config
+Namespace:    my-namespace
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+mysql.root.password:
+----
+mysql
+
+mysql.user:
+----
+mysql
+
+mysql.allow.empty.password:
+----
+no
+
+mysql.database:
+----
+mysql
+
+mysql.password:
+----
+mysql
+
+Events:  <none>
+[root@k8n0de01 ConfigMap]# ls
+mysql
+[root@k8n0de01 ConfigMap]# l s-ltr mysql/
+-bash: l: command not found
+[root@k8n0de01 ConfigMap]# ls -ltr mysql/
+total 0
+drwxr-xr-x 2 root root 129 Mar 11 13:21 env
+[root@k8n0de01 ConfigMap]# ls -ltr mysql/env/
+total 20
+-rw-r--r-- 1 root root 6 Mar 11 13:21 mysql.user
+-rw-r--r-- 1 root root 6 Mar 11 13:21 mysql.root.password
+-rw-r--r-- 1 root root 6 Mar 11 13:21 mysql.password
+-rw-r--r-- 1 root root 6 Mar 11 13:21 mysql.database
+-rw-r--r-- 1 root root 3 Mar 11 13:21 mysql.allow.empty.password
+[root@k8n0de01 ConfigMap]#
+
+@@@@
+[root@k8n0de01 ConfigMap]# kubectl get configmap
+NAME             DATA   AGE
+anotherone       0      25d
+configmap2       1      25d
+configmap3       2      25d
+configmap4       1      25d
+mysql-config     5      2m15s
+option           1      25d
+special-config   0      25d
+[root@k8n0de01 ConfigMap]# kubectl get configmap mysql-config -o yaml
+apiVersion: v1
+data:
+  mysql.allow.empty.password: |
+    no
+  mysql.database: |
+    mysql
+  mysql.password: |
+    mysql
+  mysql.root.password: |
+    mysql
+  mysql.user: |
+    mysql
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2020-03-11T20:38:24Z"
+  name: mysql-config
+  namespace: my-namespace
+  resourceVersion: "739714"
+  selfLink: /api/v1/namespaces/my-namespace/configmaps/mysql-config
+  uid: 26075b50-c9e1-43dc-93f6-0a1e0b1718b5
+[root@k8n0de01 ConfigMap]#
+
+@@@@
+[root@k8n0de01 ConfigMap]# kubectl create -f mysql-ConfigMap.yaml
+replicationcontroller/mysql created
+[root@k8n0de01 ConfigMap]# kubectl get rc
+NAME    DESIRED   CURRENT   READY   AGE
+mysql   3         3         3       11s
+[root@k8n0de01 ConfigMap]# kubectl  get pods;
+NAME                                READY   STATUS    RESTARTS   AGE
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          19d
+multitool-6d598c8f8-ngt77           1/1     Running   1          29h
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   1          26h
+myapp-deployment-76754b66c8-qphsz   1/1     Running   1          26h
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   1          26h
+mysql-deploy-6c9fb594fc-nh9p9       1/1     Running   0          4h16m
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running   0          4h16m
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running   0          4h16m
+mysql-n67br                         1/1     Running   0          18s
+mysql-s66gh                         1/1     Running   0          18s
+mysql-vr6qr                         1/1     Running   0          18s
+nginx                               1/1     Running   1          26h
+server                              1/1     Running   6          8d
+[root@k8n0de01 ConfigMap]# cay mysql-ConfigMap.yaml
+-bash: cay: command not found
+[root@k8n0de01 ConfigMap]# cat mysql-ConfigMap.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: mysql
+  labels:
+    app: mysql-app
+spec:
+  replicas: 3
+  selector:
+    app: mysql-app
+    deployment: v1
+  template:
+    metadata:
+      labels:
+        app: mysql-app
+        deployment: v1
+    spec:
+      containers:
+        -
+          env:
+            -
+             name: MYSQL_ROOT_PASSWORD
+             valueFrom:
+               configMapKeyRef:
+                 key: mysql.root.password
+                 name: mysql-config
+          name: mysql
+          image: mysql
+          ports:
+            -
+              containerPort: 3306
+
+[root@k8n0de01 ConfigMap]#
+
+
+@@@@
+[root@k8n0de01 ConfigMap]# kubectl get rc
+NAME    DESIRED   CURRENT   READY   AGE
+mysql   3         3         3       108s
+[root@k8n0de01 ConfigMap]# kubectl describe rc mysql
+Name:         mysql
+Namespace:    my-namespace
+Selector:     app=mysql-app,deployment=v1
+Labels:       app=mysql-app
+Annotations:  <none>
+Replicas:     3 current / 3 desired
+Pods Status:  3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=mysql-app
+           deployment=v1
+  Containers:
+   mysql:
+    Image:      mysql
+    Port:       3306/TCP
+    Host Port:  0/TCP
+    Environment:
+      MYSQL_ROOT_PASSWORD:  <set to the key 'mysql.root.password' of config map 'mysql-config'>  Optional: false
+    Mounts:                 <none>
+  Volumes:                  <none>
+Events:
+  Type    Reason            Age   From                    Message
+  ----    ------            ----  ----                    -------
+  Normal  SuccessfulCreate  116s  replication-controller  Created pod: mysql-n67br
+  Normal  SuccessfulCreate  116s  replication-controller  Created pod: mysql-s66gh
+  Normal  SuccessfulCreate  116s  replication-controller  Created pod: mysql-vr6qr
+[root@k8n0de01 ConfigMap]#
+
+[root@k8n0de01 ConfigMap]# kubectl describe pod mysql-n67br
+Name:         mysql-n67br
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Wed, 11 Mar 2020 14:23:26 -0700
+Labels:       app=mysql-app
+              deployment=v1
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.6
+IPs:
+  IP:           10.32.0.6
+Controlled By:  ReplicationController/mysql
+Containers:
+  mysql:
+    Container ID:   docker://7b8401eb42bb3004be92d7eb5e36f14866bbe65879899e24f8d9f6c95c665d5d
+    Image:          mysql
+    Image ID:       docker-pullable://docker.io/mysql@sha256:4a30434ce03d2fa396d0414f075ad9ca9b0b578f14ea5685e24dcbf789450a2c
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Wed, 11 Mar 2020 14:26:02 -0700
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    1
+      Started:      Wed, 11 Mar 2020 14:24:59 -0700
+      Finished:     Wed, 11 Mar 2020 14:25:33 -0700
+    Ready:          True
+    Restart Count:  3
+    Environment:
+      MYSQL_ROOT_PASSWORD:  <set to the key 'mysql.root.password' of config map 'mysql-config'>  Optional: false
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type     Reason     Age                 From                           Message
+  ----     ------     ----                ----                           -------
+  Normal   Scheduled  3m4s                default-scheduler              Successfully assigned my-namespace/mysql-n67br to k8n0de01.example.com
+  Warning  BackOff    43s (x3 over 105s)  kubelet, k8n0de01.example.com  Back-off restarting failed container
+  Normal   Pulling    32s (x4 over 3m3s)  kubelet, k8n0de01.example.com  Pulling image "mysql"
+  Normal   Pulled     30s (x4 over 3m)    kubelet, k8n0de01.example.com  Successfully pulled image "mysql"
+  Normal   Created    29s (x4 over 3m)    kubelet, k8n0de01.example.com  Created container mysql
+  Normal   Started    28s (x4 over 3m)    kubelet, k8n0de01.example.com  Started container mysql
+[root@k8n0de01 ConfigMap]#
+
+@@@@
+After CrashBack
+[root@k8n0de01 ConfigMap]# cat mysql-ConfigMap.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: mysql
+  labels:
+    app: mysql-app
+spec:
+  replicas: 3
+  selector:
+    app: mysql-app
+    deployment: v1
+  template:
+    metadata:
+      labels:
+        app: mysql-app
+        deployment: v1
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:5.6
+          command: [ "/bin/bash", "-ce", "tail -f /dev/null" ]
+          env:
+            -
+             name: MYSQL_ROOT_PASSWORD
+             valueFrom:
+               configMapKeyRef:
+                 key: mysql.root.password
+                 name: mysql-config
+          name: mysql
+          image: mysql
+          ports:
+            -
+              containerPort: 3306
+
+[root@k8n0de01 ConfigMap]# kubectl get pods -o wide
+NAME                                READY   STATUS    RESTARTS   AGE     IP          NODE                   NOMINATED NODE   READINESS GATES
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          19d     <none>      k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-ngt77           1/1     Running   1          29h     10.40.0.1   k8n0de03.example.com   <none>           <none>
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   1          26h     10.32.0.2   k8n0de01.example.com   <none>           <none>
+myapp-deployment-76754b66c8-qphsz   1/1     Running   1          26h     10.40.0.3   k8n0de03.example.com   <none>           <none>
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   1          26h     10.38.0.2   k8n0de02.example.com   <none>           <none>
+mysql-8k228                         1/1     Running   0          60s     10.32.0.6   k8n0de01.example.com   <none>           <none>
+mysql-deploy-6c9fb594fc-nh9p9       1/1     Running   0          4h25m   10.40.0.5   k8n0de03.example.com   <none>           <none>
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running   0          4h25m   10.32.0.8   k8n0de01.example.com   <none>           <none>
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running   0          4h25m   10.38.0.4   k8n0de02.example.com   <none>           <none>
+mysql-lwtxd                         1/1     Running   0          60s     10.40.0.4   k8n0de03.example.com   <none>           <none>
+mysql-m2kxr                         1/1     Running   0          60s     10.38.0.3   k8n0de02.example.com   <none>           <none>
+nginx                               1/1     Running   1          27h     10.38.0.1   k8n0de02.example.com   <none>           <none>
+server                              1/1     Running   6          9d      10.32.0.3   k8n0de01.example.com   <none>           <none>
+[root@k8n0de01 ConfigMap]#
+
+[root@k8n0de01 ConfigMap]# kubectl describe pod mysql-lwtxd
+Name:         mysql-lwtxd
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de03.example.com/10.0.2.40
+Start Time:   Wed, 11 Mar 2020 14:31:40 -0700
+Labels:       app=mysql-app
+              deployment=v1
+Annotations:  <none>
+Status:       Running
+IP:           10.40.0.4
+IPs:
+  IP:           10.40.0.4
+Controlled By:  ReplicationController/mysql
+Containers:
+  mysql:
+    Container ID:  docker://105000f5d80d70604c75738904c38e02f2c810e315ab1a4de01bd79f28ff3c67
+    Image:         mysql
+    Image ID:      docker-pullable://docker.io/mysql@sha256:4a30434ce03d2fa396d0414f075ad9ca9b0b578f14ea5685e24dcbf789450a2c
+    Port:          3306/TCP
+    Host Port:     0/TCP
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    State:          Running
+      Started:      Wed, 11 Mar 2020 14:31:44 -0700
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  <set to the key 'mysql.root.password' of config map 'mysql-config'>  Optional: false
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age    From                           Message
+  ----    ------     ----   ----                           -------
+  Normal  Scheduled  2m13s  default-scheduler              Successfully assigned my-namespace/mysql-lwtxd to k8n0de03.example.com
+  Normal  Pulling    2m12s  kubelet, k8n0de03.example.com  Pulling image "mysql"
+  Normal  Pulled     2m9s   kubelet, k8n0de03.example.com  Successfully pulled image "mysql"
+  Normal  Created    2m9s   kubelet, k8n0de03.example.com  Created container mysql
+  Normal  Started    2m9s   kubelet, k8n0de03.example.com  Started container mysql
+[root@k8n0de01 ConfigMap]#
+
