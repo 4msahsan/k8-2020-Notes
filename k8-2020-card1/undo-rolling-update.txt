@@ -1,0 +1,214 @@
+[root@k8n0de01 ~]# kubectl rollout undo  deployment/mysql-deploy
+deployment.apps/mysql-deploy rolled back
+[root@k8n0de01 ~]# kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+multitool          1/1     1            1           21d
+myapp-deployment   3/3     3            3           21h
+mysql-deploy       3/3     3            3           17h
+[root@k8n0de01 ~]# kubectl describe deploy mysql-deploy+
+Error from server (NotFound): deployments.apps "mysql-deploy+" not found
+[root@k8n0de01 ~]# kubectl describe deploy mysql-deploy
+Name:                   mysql-deploy
+Namespace:              my-namespace
+CreationTimestamp:      Tue, 10 Mar 2020 16:11:25 -0700
+Labels:                 app=mysql-deploy
+Annotations:            deployment.kubernetes.io/revision: 5
+Selector:               app=mysql-deploy
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  75% max unavailable, 30% max surge
+Pod Template:
+  Labels:  app=mysql-deploy
+  Containers:
+   mysql:
+    Image:      mysql:5.5
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   mysql-deploy-6c9fb594fc (3/3 replicas created)
+Events:
+  Type    Reason             Age                From                   Message
+  ----    ------             ----               ----                   -------
+  Normal  ScalingReplicaSet  17h                deployment-controller  Scaled up replica set mysql-deploy-7f74bdcb78 to 1
+  Normal  ScalingReplicaSet  17h                deployment-controller  Scaled up replica set mysql-deploy-7f74bdcb78 to 3
+  Normal  ScalingReplicaSet  17h                deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  17h (x2 over 17h)  deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 3
+  Normal  ScalingReplicaSet  17h                deployment-controller  Scaled down replica set mysql-deploy-7f74bdcb78 to 1
+  Normal  ScalingReplicaSet  17h                deployment-controller  Scaled down replica set mysql-deploy-7f74bdcb78 to 0
+  Normal  ScalingReplicaSet  17h (x2 over 17h)  deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  17h                deployment-controller  Scaled up replica set mysql-deploy-5549b99564 to 1
+  Normal  ScalingReplicaSet  17h                deployment-controller  (combined from similar events): Scaled up replica set mysql-deploy-5549b99564 to 3
+  Normal  ScalingReplicaSet  17h (x2 over 17h)  deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 0
+  Normal  ScalingReplicaSet  41s                deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  41s                deployment-controller  Scaled down replica set mysql-deploy-5549b99564 to 1
+  Normal  ScalingReplicaSet  41s                deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 3
+  Normal  ScalingReplicaSet  39s                deployment-controller  Scaled down replica set mysql-deploy-5549b99564 to 0
+[root@k8n0de01 ~]#
+
+
+root@k8n0de01 ~]# kubectl get pods;
+NAME                                READY   STATUS    RESTARTS   AGE
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          18d
+multitool-6d598c8f8-ngt77           1/1     Running   1          24h
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   1          21h
+myapp-deployment-76754b66c8-qphsz   1/1     Running   1          21h
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   1          21h
+mysql-deploy-6c9fb594fc-55dw4       1/1     Running   0          87s
+mysql-deploy-6c9fb594fc-nd6bm       1/1     Running   0          87s
+mysql-deploy-6c9fb594fc-tqr4j       1/1     Running   0          87s
+nginx                               1/1     Running   1          22h
+server                              1/1     Running   6          8d
+[root@k8n0de01 ~]# kubectl describe pod mysql-deploy-6c9fb594fc-55dw4
+Name:         mysql-deploy-6c9fb594fc-55dw4
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de03.example.com/10.0.2.40
+Start Time:   Wed, 11 Mar 2020 09:40:08 -0700
+Labels:       app=mysql-deploy
+              pod-template-hash=6c9fb594fc
+Annotations:  <none>
+Status:       Running
+IP:           10.40.0.5
+IPs:
+  IP:           10.40.0.5
+Controlled By:  ReplicaSet/mysql-deploy-6c9fb594fc
+Containers:
+  mysql:
+    Container ID:  docker://5b35a702ebbe76368140953007a6041820313fc1001dcc314a64d750c388d477
+    Image:         mysql:5.5
+    Image ID:      docker-pullable://docker.io/mysql@sha256:12da85ab88aedfdf39455872fb044f607c32fdc233cd59f1d26769fbf439b045
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    State:          Running
+      Started:      Wed, 11 Mar 2020 09:40:10 -0700
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age   From                           Message
+  ----    ------     ----  ----                           -------
+  Normal  Scheduled  109s  default-scheduler              Successfully assigned my-namespace/mysql-deploy-6c9fb594fc-55dw4 to k8n0de03.example.com
+  Normal  Pulled     108s  kubelet, k8n0de03.example.com  Container image "mysql:5.5" already present on machine
+  Normal  Created    108s  kubelet, k8n0de03.example.com  Created container mysql
+  Normal  Started    107s  kubelet, k8n0de03.example.com  Started container mysql
+[root@k8n0de01 ~]#
+
+@@@
+[root@k8n0de01 ~]# kubectl rollout history deployment/mysql-deploy
+deployment.apps/mysql-deploy
+REVISION  CHANGE-CAUSE
+2         <none>
+5         <none>
+6         <none>
+
+[root@k8n0de01 ~]# kubectl rollout undo  deployment/mysql-deploy --to-revision=4
+error: unable to find specified revision 4 in history
+[root@k8n0de01 ~]# kubectl rollout undo  deployment/mysql-deploy --to-revision=5
+deployment.apps/mysql-deploy rolled back
+[root@k8n0de01 ~]#
+
+[root@k8n0de01 ~]# kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+multitool          1/1     1            1           21d
+myapp-deployment   3/3     3            3           21h
+mysql-deploy       3/3     3            3           17h
+[root@k8n0de01 ~]# kubectl describe deploy mysql-deploy
+Name:                   mysql-deploy
+Namespace:              my-namespace
+CreationTimestamp:      Tue, 10 Mar 2020 16:11:25 -0700
+Labels:                 app=mysql-deploy
+Annotations:            deployment.kubernetes.io/revision: 7
+Selector:               app=mysql-deploy
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  75% max unavailable, 30% max surge
+Pod Template:
+  Labels:  app=mysql-deploy
+  Containers:
+   mysql:
+    Image:      mysql:5.5
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /bin/bash
+      -ce
+      tail -f /dev/null
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   mysql-deploy-6c9fb594fc (3/3 replicas created)
+Events:
+  Type    Reason             Age                 From                   Message
+  ----    ------             ----                ----                   -------
+  Normal  ScalingReplicaSet  17h                 deployment-controller  Scaled up replica set mysql-deploy-7f74bdcb78 to 1
+  Normal  ScalingReplicaSet  17h                 deployment-controller  Scaled up replica set mysql-deploy-7f74bdcb78 to 3
+  Normal  ScalingReplicaSet  17h                 deployment-controller  Scaled down replica set mysql-deploy-7f74bdcb78 to 1
+  Normal  ScalingReplicaSet  17h (x2 over 17h)   deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 3
+  Normal  ScalingReplicaSet  17h                 deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  17h                 deployment-controller  Scaled down replica set mysql-deploy-7f74bdcb78 to 0
+  Normal  ScalingReplicaSet  17h (x2 over 17h)   deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  17h                 deployment-controller  Scaled up replica set mysql-deploy-5549b99564 to 1
+  Normal  ScalingReplicaSet  17h                 deployment-controller  (combined from similar events): Scaled up replica set mysql-deploy-5549b99564 to 3
+  Normal  ScalingReplicaSet  17h (x2 over 17h)   deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 0
+  Normal  ScalingReplicaSet  25m                 deployment-controller  Scaled up replica set mysql-deploy-5549b99564 to 3
+  Normal  ScalingReplicaSet  25m                 deployment-controller  Scaled up replica set mysql-deploy-5549b99564 to 1
+  Normal  ScalingReplicaSet  25m                 deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  25m                 deployment-controller  Scaled down replica set mysql-deploy-6c9fb594fc to 0
+  Normal  ScalingReplicaSet  109s (x2 over 28m)  deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 3
+  Normal  ScalingReplicaSet  109s (x2 over 28m)  deployment-controller  Scaled up replica set mysql-deploy-6c9fb594fc to 1
+  Normal  ScalingReplicaSet  109s (x2 over 28m)  deployment-controller  Scaled down replica set mysql-deploy-5549b99564 to 1
+  Normal  ScalingReplicaSet  107s (x2 over 28m)  deployment-controller  Scaled down replica set mysql-deploy-5549b99564 to 0
+[root@k8n0de01 ~]#
+
+[root@k8n0de01 ~]# kubectl rollout history deploy/mysql-deploy
+deployment.apps/mysql-deploy
+REVISION  CHANGE-CAUSE
+2         <none>
+6         <none>
+7         <none>
+
+[root@k8n0de01 ~]#
+
+
+
