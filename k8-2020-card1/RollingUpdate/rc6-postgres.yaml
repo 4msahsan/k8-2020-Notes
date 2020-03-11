@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: postgresql
+  labels:
+    app: postgres-app
+spec:
+  replicas: 3
+  selector:
+    app: postgres-app
+    deployment: v1
+  template:
+    metadata:
+      labels:
+        app: postgres-app
+        deployment: v1
+    spec:
+      containers:
+        -
+          env:
+            -
+             name: MYSQL_ROOT_PASSWORD
+             value: mysql
+          name: postgres
+          image: postgres
+          ports:
+            -
+              containerPort: 3306

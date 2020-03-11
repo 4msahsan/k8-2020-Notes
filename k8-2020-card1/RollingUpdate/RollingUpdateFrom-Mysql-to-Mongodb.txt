@@ -1,0 +1,87 @@
+ng-update  mysql mysql-v5 --image=mysql:5.6
+ 
+ [root@k8n0de01 k8-2020-card1]# kubectl get rc
+NAME       DESIRED   CURRENT   READY   AGE
+mysql-v5   3         3         3       9m1s
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe rc mysql-v5
+Name:         mysql-v5
+Namespace:    my-namespace
+Selector:     app=mysql-app,deployment=adab7529be56c814bba80dbca5c98f63
+Labels:       app=mysql-app
+Annotations:  kubectl.kubernetes.io/next-controller-id: postgresql
+              kubectl.kubernetes.io/original-replicas: 3
+Replicas:     3 current / 3 desired
+Pods Status:  3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=mysql-app
+           deployment=adab7529be56c814bba80dbca5c98f63
+  Containers:
+   mysql:
+    Image:      mysql:5.6
+    Port:       3306/TCP
+    Host Port:  0/TCP
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:                 <none>
+  Volumes:                  <none>
+Events:
+  Type    Reason            Age    From                    Message
+  ----    ------            ----   ----                    -------
+  Normal  SuccessfulCreate  9m24s  replication-controller  Created pod: mysql-v5-s5fs5
+  Normal  SuccessfulCreate  8m18s  replication-controller  Created pod: mysql-v5-v5cjp
+  Normal  SuccessfulCreate  7m11s  replication-controller  Created pod: mysql-v5-xmfdb
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 k8-2020-card1]# kubectl rolling-update  mysql-v5 mondodb --image=docker.io/tutum/mongodb
+Command "rolling-update" is deprecated, use "rollout" instead
+Created mondodb
+Scaling up mondodb from 0 to 3, scaling down mysql-v5 from 3 to 0 (keep 3 pods available, don't exceed 4 pods)
+Scaling mondodb up to 1
+Scaling mysql-v5 down to 2
+Scaling mondodb up to 2
+Scaling mysql-v5 down to 1
+Scaling mondodb up to 3
+Scaling mysql-v5 down to 0
+Update succeeded. Deleting mysql-v5
+replicationcontroller/mondodb rolling updated to "mondodb"
+[root@k8n0de01 k8-2020-card1]# kubectl get rc
+NAME      DESIRED   CURRENT   READY   AGE
+mondodb   3         3         3       5m42s
+[root@k8n0de01 k8-2020-card1]# kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+mondodb-5bnq9               1/1     Running   0          5m49s
+mondodb-97gq4               1/1     Running   0          4m43s
+mondodb-ft2d6               1/1     Running   0          2m36s
+multitool-6d598c8f8-hdjzw   1/1     Running   9          12d
+server                      1/1     Running   2          2d
+[root@k8n0de01 k8-2020-card1]# kubectl describe rc mondodb
+Name:         mondodb
+Namespace:    my-namespace
+Selector:     app=mysql-app,deployment=816ac61c36452fa74bce305984ebb203
+Labels:       app=mysql-app
+Annotations:  kubectl.kubernetes.io/next-controller-id: postgresql
+              kubectl.kubernetes.io/original-replicas: 3
+Replicas:     3 current / 3 desired
+Pods Status:  3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=mysql-app
+           deployment=816ac61c36452fa74bce305984ebb203
+  Containers:
+   mysql:
+    Image:      docker.io/tutum/mongodb
+    Port:       3306/TCP
+    Host Port:  0/TCP
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:                 <none>
+  Volumes:                  <none>
+Events:
+  Type    Reason            Age    From                    Message
+  ----    ------            ----   ----                    -------
+  Normal  SuccessfulCreate  6m11s  replication-controller  Created pod: mondodb-5bnq9
+  Normal  SuccessfulCreate  5m4s   replication-controller  Created pod: mondodb-97gq4
+  Normal  SuccessfulCreate  2m58s  replication-controller  Created pod: mondodb-ft2d6
+[root@k8n0de01 k8-2020-card1]#
+

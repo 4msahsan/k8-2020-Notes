@@ -1,0 +1,254 @@
+[root@k8n0de01 k8-2020-card1]# kubectl get rc
+NAME    DESIRED   CURRENT   READY   AGE
+mysql   3         3         1       55s
+[root@k8n0de01 k8-2020-card1]# kubectl describe rc mysql
+Name:         mysql
+Namespace:    my-namespace
+Selector:     app=mysql-app,deployment=v1
+Labels:       app=mysql-app
+Annotations:  <none>
+Replicas:     3 current / 3 desired
+Pods Status:  3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=mysql-app
+           deployment=v1
+  Containers:
+   mysql:
+    Image:      mysql
+    Port:       3306/TCP
+    Host Port:  0/TCP
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:                 <none>
+  Volumes:                  <none>
+Events:
+  Type    Reason            Age   From                    Message
+  ----    ------            ----  ----                    -------
+  Normal  SuccessfulCreate  68s   replication-controller  Created pod: mysql-gcfc5
+  Normal  SuccessfulCreate  68s   replication-controller  Created pod: mysql-8xl9d
+  Normal  SuccessfulCreate  68s   replication-controller  Created pod: mysql-ppnrv
+[root@k8n0de01 k8-2020-card1]# cat rc3.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: mysql
+  labels:
+    app: mysql-app
+spec:
+  replicas: 3
+  selector:
+    app: mysql-app
+    deployment: v1
+  template:
+    metadata:
+      labels:
+        app: mysql-app
+        deployment: v1
+    spec:
+      containers:
+        -
+          env:
+            -
+             name: MYSQL_ROOT_PASSWORD
+             value: mysql
+          name: mysql
+          image: mysql
+          ports:
+            -
+              containerPort: 3306
+[root@k8n0de01 k8-2020-card1]#
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl get pods -o wide;
+NAME                        READY   STATUS    RESTARTS   AGE     IP          NODE                   NOMINATED NODE   READINESS GATES
+multitool-6d598c8f8-hdjzw   1/1     Running   9          11d     10.32.0.6   k8n0de01.example.com   <none>           <none>
+mysql-8xl9d                 1/1     Running   0          2m52s   10.32.0.2   k8n0de01.example.com   <none>           <none>
+mysql-gcfc5                 1/1     Running   0          2m52s   10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-ppnrv                 1/1     Running   0          2m52s   10.38.0.1   k8n0de02.example.com   <none>           <none>
+server                      1/1     Running   2          45h     10.32.0.4   k8n0de01.example.com   <none>           <none>
+[root@k8n0de01 k8-2020-card1]#
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod mysql-8xl9d
+Name:         mysql-8xl9d
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Wed, 04 Mar 2020 10:34:52 -0800
+Labels:       app=mysql-app
+              deployment=v1
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.2
+IPs:
+  IP:           10.32.0.2
+Controlled By:  ReplicationController/mysql
+Containers:
+  mysql:
+    Container ID:   docker://b9cdb2de4ce0dd028478b7511bde7b3b3073191afbf88770d7eca78d0913122f
+    Image:          mysql
+    Image ID:       docker-pullable://docker.io/mysql@sha256:230d501a0c971221aef647661b331c56587fc5bd4a465dfa132c4d2b45835163
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Wed, 04 Mar 2020 10:34:55 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age    From                           Message
+  ----    ------     ----   ----                           -------
+  Normal  Scheduled  3m37s  default-scheduler              Successfully assigned my-namespace/mysql-8xl9d to k8n0de01.example.com
+  Normal  Pulling    3m36s  kubelet, k8n0de01.example.com  Pulling image "mysql"
+  Normal  Pulled     3m34s  kubelet, k8n0de01.example.com  Successfully pulled image "mysql"
+  Normal  Created    3m34s  kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    3m34s  kubelet, k8n0de01.example.com  Started container mysql
+[root@k8n0de01 k8-2020-card1]#
+
+@@@@ Upgrate mysql:5.5 version
+@@@@@
+
+root@k8n0de01 k8-2020-card1]# kubectl rolling-update mysql -f rc4.yaml  --timeout=1m
+Command "rolling-update" is deprecated, use "rollout" instead
+Created mysql-v1
+Scaling up mysql-v1 from 0 to 3, scaling down mysql from 3 to 0 (keep 3 pods available, don't exceed 4 pods)
+Scaling mysql-v1 up to 1
+Scaling mysql down to 2
+Scaling mysql-v1 up to 2
+Scaling mysql down to 1
+Scaling mysql-v1 up to 3
+Scaling mysql down to 0
+Update succeeded. Deleting old controller: mysql
+Renaming mysql-v1 to mysql
+replicationcontroller/mysql rolling updated
+[root@k8n0de01 k8-2020-card1]# kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+multitool-6d598c8f8-hdjzw   1/1     Running   9          12d
+mysql-v1-nnchl              1/1     Running   0          3m33s
+mysql-v1-qlzs6              1/1     Running   0          4m40s
+mysql-v1-sbt8r              1/1     Running   0          2m27s
+server                      1/1     Running   2          45h
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 k8-2020-card1]# cat rc4.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: mysql-v1
+  labels:
+    app: mysql-app
+spec:
+  replicas: 3
+  selector:
+    app: mysql-app
+    deployment: v2
+  template:
+    metadata:
+      labels:
+        app: mysql-app
+        deployment: v2
+    spec:
+      containers:
+        -
+          env:
+            -
+             name: MYSQL_ROOT_PASSWORD
+             value: mysql
+          name: mysql
+          image: mysql:5.5
+          ports:
+            -
+              containerPort: 3306
+[root@k8n0de01 k8-2020-card1]
+
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe  rc mysql
+Name:         mysql
+Namespace:    my-namespace
+Selector:     app=mysql-app,deployment=v2
+Labels:       app=mysql-app
+Annotations:  <none>
+Replicas:     3 current / 3 desired
+Pods Status:  3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=mysql-app
+           deployment=v2
+  Containers:
+   mysql:
+    Image:      mysql:5.5
+    Port:       3306/TCP
+    Host Port:  0/TCP
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:                 <none>
+  Volumes:                  <none>
+Events:                     <none>
+[root@k8n0de01 k8-2020-card1]#
+
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod mysql-v1-nnchl  | grep -i mysql
+Name:         mysql-v1-nnchl
+Labels:       app=mysql-app
+Controlled By:  ReplicationController/mysql
+  mysql:
+    Image:          mysql:5.5
+    Image ID:       docker-pullable://docker.io/mysql@sha256:12da85ab88aedfdf39455872fb044f607c32fdc233cd59f1d26769fbf439b045
+      MYSQL_ROOT_PASSWORD:  mysql
+  Normal  Scheduled  5m56s  default-scheduler              Successfully assigned my-namespace/mysql-v1-nnchl to k8n0de02.example.com
+  Normal  Pulling    5m55s  kubelet, k8n0de02.example.com  Pulling image "mysql:5.5"
+  Normal  Pulled     5m32s  kubelet, k8n0de02.example.com  Successfully pulled image "mysql:5.5"
+  Normal  Created    5m31s  kubelet, k8n0de02.example.com  Created container mysql
+  Normal  Started    5m30s  kubelet, k8n0de02.example.com  Started container mysql
+[root@k8n0de01 k8-2020-card1]#
+
+
+[root@k8n0de01 k8-2020-card1]# sdiff rc3.yaml rc4.yaml
+apiVersion: v1                                                  apiVersion: v1
+kind: ReplicationController                                     kind: ReplicationController
+metadata:                                                       metadata:
+  name: mysql                                                 |   name: mysql-v1
+  labels:                                                         labels:
+    app: mysql-app                                                  app: mysql-app
+spec:                                                           spec:
+  replicas: 3                                                     replicas: 3
+  selector:                                                       selector:
+    app: mysql-app                                                  app: mysql-app
+    deployment: v1                                            |     deployment: v2
+  template:                                                       template:
+    metadata:                                                       metadata:
+      labels:                                                         labels:
+        app: mysql-app                                                  app: mysql-app
+        deployment: v1                                        |         deployment: v2
+    spec:                                                           spec:
+      containers:                                                     containers:
+        -                                                               -
+          env:                                                            env:
+            -                                                               -
+             name: MYSQL_ROOT_PASSWORD                                       name: MYSQL_ROOT_PASSWORD
+             value: mysql                                                    value: mysql
+          name: mysql                                                     name: mysql
+          image: mysql                                        |           image: mysql:5.5
+          ports:                                                          ports:
+            -                                                               -
+              containerPort: 3306                                             containerPort: 3306
+[root@k8n0de01 k8-2020-card1]#
+
+

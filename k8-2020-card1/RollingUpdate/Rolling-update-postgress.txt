@@ -1,0 +1,284 @@
+[root@k8n0de01 k8-2020-card1]# kubectl rolling-update mysql postgresql --image=postgres
+Command "rolling-update" is deprecated, use "rollout" instead
+Error from server (NotFound): replicationcontrollers "mysql" not found
+[root@k8n0de01 k8-2020-card1]# kubectl rolling-update mysql-v1 postgresql --image=postgres
+Command "rolling-update" is deprecated, use "rollout" instead
+Created postgresql
+Scaling up postgresql from 0 to 3, scaling down mysql-v1 from 3 to 0 (keep 3 pods available, don't exceed 4 pods)
+Scaling postgresql up to 1
+error: timed out waiting for any update progress to be made
+[root@k8n0de01 k8-2020-card1]# kubectl get pods;
+NAME                           READY   STATUS             RESTARTS   AGE
+hello-world-55cc89c496-mm44k   1/1     Running            1          25h
+hello-world-55cc89c496-xk55h   1/1     Running            1          25h
+hello-world-55cc89c496-xlw9l   1/1     Running            1          25h
+multitool-6d598c8f8-hdjzw      1/1     Running            8          11d
+mysql-v1-5jjkf                 1/1     Running            0          33m
+mysql-v1-qq8pn                 1/1     Running            0          33m
+mysql-v1-sl7qc                 1/1     Running            0          33m
+nginx01-svc                    1/1     Terminating        0          11d
+postgresql-rv5kg               0/1     CrashLoopBackOff   11         32m
+server                         1/1     Running            1          26h
+[root@k8n0de01 k8-2020-card1]# kubectl get rc
+NAME         DESIRED   CURRENT   READY   AGE
+mysql-v1     3         3         3       33m
+postgresql   1         1         0       32m
+[root@k8n0de01 k8-2020-card1]# kubectl describe rc postgresql
+Name:         postgresql
+Namespace:    my-namespace
+Selector:     app=mysql-app,deployment=c100df0fafbdb8a8707ea2d5d0c0a868
+Labels:       app=mysql-app
+Annotations:  kubectl.kubernetes.io/desired-replicas: 3
+              kubectl.kubernetes.io/update-source-id: mysql-v1:b2ed4675-b577-4cfb-88b9-2084fb2f26be
+Replicas:     1 current / 1 desired
+Pods Status:  1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=mysql-app
+           deployment=c100df0fafbdb8a8707ea2d5d0c0a868
+  Containers:
+   mysql:
+    Image:      postgres
+    Port:       3306/TCP
+    Host Port:  0/TCP
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:                 <none>
+  Volumes:                  <none>
+Events:
+  Type    Reason            Age   From                    Message
+  ----    ------            ----  ----                    -------
+  Normal  SuccessfulCreate  33m   replication-controller  Created pod: postgresql-rv5kg
+[root@k8n0de01 k8-2020-card1]#
+
+
+
+@@@ update mysql:5.6
+[root@k8n0de01 k8-2020-card1]# kubectl rolling-update mysql-v1 --image=mysql:5.6
+Command "rolling-update" is deprecated, use "rollout" instead
+Created mysql-v1-1ddec05b24c5e75915b79f184336c90c
+Scaling up mysql-v1-1ddec05b24c5e75915b79f184336c90c from 0 to 3, scaling down mysql-v1 from 3 to 0 (keep 3 pods available, don't exceed 4 pods)
+Scaling mysql-v1-1ddec05b24c5e75915b79f184336c90c up to 1
+
+Scaling mysql-v1 down to 2
+Scaling mysql-v1-1ddec05b24c5e75915b79f184336c90c up to 2
+Scaling mysql-v1 down to 1
+Scaling mysql-v1-1ddec05b24c5e75915b79f184336c90c up to 3
+Scaling mysql-v1 down to 0
+Update succeeded. Deleting old controller: mysql-v1
+Renaming mysql-v1-1ddec05b24c5e75915b79f184336c90c to mysql-v1
+replicationcontroller/mysql-v1 rolling updated
+[root@k8n0de01 k8-2020-card1]#
+[root@k8n0de01 k8-2020-card1]#
+.
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod mysql-v1
+Name:         mysql-v1-1ddec05b24c5e75915b79f184336c90c-76zzh
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 03 Mar 2020 16:11:14 -0800
+Labels:       app=mysql-app
+              deployment=1ddec05b24c5e75915b79f184336c90c
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.10
+IPs:
+  IP:           10.32.0.10
+Controlled By:  ReplicationController/mysql-v1
+Containers:
+  mysql:
+    Container ID:   docker://6727e65b390b0f0cc3045b6c75fcb43578805e8d825fd61dcc472c179bb59ead
+    Image:          mysql:5.6
+    Image ID:       docker-pullable://docker.io/mysql@sha256:37e64b8af87c1ecb036629364137c6974aaeb191a21f571204af2fd7555739f0
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 03 Mar 2020 16:11:15 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-v1-1ddec05b24c5e75915b79f184336c90c-76zzh to k8n0de01.example.com
+  Normal  Pulled     4m43s      kubelet, k8n0de01.example.com  Container image "mysql:5.6" already present on machine
+  Normal  Created    4m43s      kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    4m43s      kubelet, k8n0de01.example.com  Started container mysql
+
+Name:         mysql-v1-1ddec05b24c5e75915b79f184336c90c-swdfz
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 03 Mar 2020 16:12:20 -0800
+Labels:       app=mysql-app
+              deployment=1ddec05b24c5e75915b79f184336c90c
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.9
+IPs:
+  IP:           10.32.0.9
+Controlled By:  ReplicationController/mysql-v1
+Containers:
+  mysql:
+    Container ID:   docker://c990d5a34f7dcf724534db2946248637527eec9caedf9430f4377400dec02726
+    Image:          mysql:5.6
+    Image ID:       docker-pullable://docker.io/mysql@sha256:37e64b8af87c1ecb036629364137c6974aaeb191a21f571204af2fd7555739f0
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 03 Mar 2020 16:12:21 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-v1-1ddec05b24c5e75915b79f184336c90c-swdfz to k8n0de01.example.com
+  Normal  Pulled     3m37s      kubelet, k8n0de01.example.com  Container image "mysql:5.6" already present on machine
+  Normal  Created    3m37s      kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    3m37s      kubelet, k8n0de01.example.com  Started container mysql
+
+Name:         mysql-v1-1ddec05b24c5e75915b79f184336c90c-xxshx
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 03 Mar 2020 16:10:07 -0800
+Labels:       app=mysql-app
+              deployment=1ddec05b24c5e75915b79f184336c90c
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.11
+IPs:
+  IP:           10.32.0.11
+Controlled By:  ReplicationController/mysql-v1
+Containers:
+  mysql:
+    Container ID:   docker://edae1756b767435ea61fb87f7de7af6bbcf32c7248ecb24aaeb33c49d4a64576
+    Image:          mysql:5.6
+    Image ID:       docker-pullable://docker.io/mysql@sha256:37e64b8af87c1ecb036629364137c6974aaeb191a21f571204af2fd7555739f0
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 03 Mar 2020 16:10:09 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-v1-1ddec05b24c5e75915b79f184336c90c-xxshx to k8n0de01.example.com
+  Normal  Pulled     5m50s      kubelet, k8n0de01.example.com  Container image "mysql:5.6" already present on machine
+  Normal  Created    5m49s      kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    5m49s      kubelet, k8n0de01.example.com  Started container mysql
+
+[root@k8n0de01 k8-2020-card1]#
+
+
+@@@
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod mysql-v1-1ddec05b24c5e75915b79f184336c90c-76zzh
+Name:         mysql-v1-1ddec05b24c5e75915b79f184336c90c-76zzh
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 03 Mar 2020 16:11:14 -0800
+Labels:       app=mysql-app
+              deployment=1ddec05b24c5e75915b79f184336c90c
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.10
+IPs:
+  IP:           10.32.0.10
+Controlled By:  ReplicationController/mysql-v1
+Containers:
+  mysql:
+    Container ID:   docker://6727e65b390b0f0cc3045b6c75fcb43578805e8d825fd61dcc472c179bb59ead
+    Image:          mysql:5.6
+    Image ID:       docker-pullable://docker.io/mysql@sha256:37e64b8af87c1ecb036629364137c6974aaeb191a21f571204af2fd7555739f0
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 03 Mar 2020 16:11:15 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/mysql-v1-1ddec05b24c5e75915b79f184336c90c-76zzh to k8n0de01.example.com
+  Normal  Pulled     6m4s       kubelet, k8n0de01.example.com  Container image "mysql:5.6" already present on machine
+  Normal  Created    6m4s       kubelet, k8n0de01.example.com  Created container mysql
+  Normal  Started    6m4s       kubelet, k8n0de01.example.com  Started container mysql
+[root@k8n0de01 k8-2020-card1]#
+

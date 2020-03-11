@@ -1,0 +1,132 @@
+@@@LoadBalace
+[root@ccmas ~]# kubectl run hello-world --image=tutum/hello-world --replicas=3 --port=80
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or ku                                            bectl create instead.
+deployment.apps/hello-world created
+[root@ccmas ~]# kubectl get pods;
+NAME                           READY   STATUS              RESTARTS   AGE
+hello-world-59b45bc5b9-45jgf   0/1     ContainerCreating   0          6s
+hello-world-59b45bc5b9-95hbn   0/1     ContainerCreating   0          6s
+hello-world-59b45bc5b9-m84qr   0/1     ContainerCreating   0          6s
+multitool-64d55546dc-j7sh7     1/1     Running             1          35h
+webserver-5bff76c8f7-sfgfm     1/1     Running             2          14d
+[root@ccmas ~]# kubectl get pods;
+NAME                           READY   STATUS              RESTARTS   AGE
+hello-world-59b45bc5b9-45jgf   0/1     ContainerCreating   0          11s
+hello-world-59b45bc5b9-95hbn   0/1     ContainerCreating   0          11s
+hello-world-59b45bc5b9-m84qr   0/1     ContainerCreating   0          11s
+multitool-64d55546dc-j7sh7     1/1     Running             1          35h
+webserver-5bff76c8f7-sfgfm     1/1     Running             2          14d
+[root@ccmas ~]# kubectl get pods;
+NAME                           READY   STATUS              RESTARTS   AGE
+hello-world-59b45bc5b9-45jgf   1/1     Running             0          12s
+hello-world-59b45bc5b9-95hbn   0/1     ContainerCreating   0          12s
+hello-world-59b45bc5b9-m84qr   1/1     Running             0          12s
+multitool-64d55546dc-j7sh7     1/1     Running             1          35h
+webserver-5bff76c8f7-sfgfm     1/1     Running             2          14d
+[root@ccmas ~]# kubectl get deploy
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE
+hello-world   3/3     3            3           33s
+multitool     1/1     1            1           14d
+webserver     1/1     1            1           14d
+[root@ccmas ~]# kubectl get deploy -o wide;
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS    IMAGES                     SELECTOR
+hello-world   3/3     3            3           38s   hello-world   tutum/hello-world          run=hello-world
+multitool     1/1     1            1           14d   multitool     praqma/network-multitool   run=multitool
+webserver     1/1     1            1           14d   webserver     nginx:alpine               run=webserver
+[root@ccmas ~]# kubectl get pods -o wide;
+NAME                           READY   STATUS    RESTARTS   AGE   IP          NODE                  NOMINATED NODE   READINESS GATES
+hello-world-59b45bc5b9-45jgf   1/1     Running   0          50s   10.44.0.2   ccnode1.example.com   <none>           <none>
+hello-world-59b45bc5b9-95hbn   1/1     Running   0          50s   10.36.0.1   ccnode2.example.com   <none>           <none>
+hello-world-59b45bc5b9-m84qr   1/1     Running   0          50s   10.32.0.6   ccmas.example.com     <none>           <none>
+multitool-64d55546dc-j7sh7     1/1     Running   1          35h   10.32.0.5   ccmas.example.com     <none>           <none>
+webserver-5bff76c8f7-sfgfm     1/1     Running   2          14d   10.32.0.4   ccmas.example.com     <none>           <none>
+[root@ccmas ~]#
+
+
+[root@ccmas ~]# kubectl get deploy
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE
+hello-world   3/3     3            3           4m8s
+multitool     1/1     1            1           14d
+webserver     1/1     1            1           14d
+[root@ccmas ~]# kubectl expose deployment hello-world --port=80 --type=LoadBalacer --dry-run -o yaml >> Loadbancencer.yaml
+[root@ccmas ~]# kubectl get svc
+NAME         TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+kubernetes   ClusterIP      10.96.0.1      <none>          443/TCP        14d
+multitool    LoadBalancer   10.99.132.47   192.168.0.241   80:32394/TCP   14d
+[root@ccmas ~]# ls
+anaconda-ks.cfg  k8.txt  Loadbancencer.yaml  matallb-config.yaml
+[root@ccmas ~]#
+
+
+[root@ccmas ~]# cat Loadbancencer.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    run: hello-world
+  name: hello-world
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: hello-world
+  type: LoadBalancer
+status:
+  loadBalancer: {}
+[root@ccmas ~]# kubectl create -f Loadbancencer.yaml
+service/hello-world created
+[root@ccmas ~]# kubectl get svc
+NAME          TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)        AGE
+hello-world   LoadBalancer   10.106.133.185   192.168.0.240   80:31138/TCP   5s
+kubernetes    ClusterIP      10.96.0.1        <none>          443/TCP        14d
+multitool     LoadBalancer   10.99.132.47     192.168.0.241   80:32394/TCP   14d
+[root@ccmas ~]#
+
+[root@ccmas ~]# kubectl describe svc hello-world
+Name:                     hello-world
+Namespace:                default
+Labels:                   run=hello-world
+Annotations:              <none>
+Selector:                 run=hello-world
+Type:                     LoadBalancer
+IP:                       10.106.133.185
+LoadBalancer Ingress:     192.168.0.240
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  31138/TCP
+Endpoints:                10.32.0.6:80,10.36.0.1:80,10.44.0.2:80
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:
+  Type    Reason        Age   From                Message
+  ----    ------        ----  ----                -------
+  Normal  IPAllocated   78s   metallb-controller  Assigned IP "192.168.0.240"
+  Normal  nodeAssigned  78s   metallb-speaker     announcing from node "ccnode2.example.com"
+[root@ccmas ~]#
+
+
+  Normal  nodeAssigned  78s   metallb-speaker     announcing from node "ccnode2.example.com"
+[root@ccmas ~]# curl 192.168.0.240
+<html>
+<head>
+        <title>Hello world!</title>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+        <style>
+        body {
+                background-color: white;
+                text-align: center;
+                padding: 50px;
+                font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+        }
+
+
+[root@ccmas ~]# kubectl describe svc hello-world | grep -i Load
+Type:                     LoadBalancer
+LoadBalancer Ingress:     192.168.0.240
+[root@ccmas ~]#
+
+
+

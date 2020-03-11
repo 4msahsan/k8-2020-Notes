@@ -1,0 +1,155 @@
+[root@k8n0de01 k8-2020-card1]# kubectl rolling-update  mysql --image=mysql:5.6
+Command "rolling-update" is deprecated, use "rollout" instead
+Created mysql-fe3be19707a75a635f3ab1001fb2d8fe
+Scaling up mysql-fe3be19707a75a635f3ab1001fb2d8fe from 0 to 3, scaling down mysql from 3 to 0 (keep 3 pods available, don't exceed 4 pods)
+Scaling mysql-fe3be19707a75a635f3ab1001fb2d8fe up to 1
+Scaling mysql down to 2
+Scaling mysql-fe3be19707a75a635f3ab1001fb2d8fe up to 2
+Scaling mysql down to 1
+Scaling mysql-fe3be19707a75a635f3ab1001fb2d8fe up to 3
+Scaling mysql down to 0
+Update succeeded. Deleting old controller: mysql
+Renaming mysql-fe3be19707a75a635f3ab1001fb2d8fe to mysql
+replicationcontroller/mysql rolling updated
+[root@k8n0de01 k8-2020-card1]# kubectl get pods -o wide;
+NAME                                           READY   STATUS    RESTARTS   AGE     IP          NODE                   NOMINATED NODE   READINESS GATES
+multitool-6d598c8f8-hdjzw                      1/1     Running   9          12d     10.32.0.6   k8n0de01.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w   1/1     Running   0          4m19s   10.38.0.1   k8n0de02.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-lmbsw   1/1     Running   0          3m12s   10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-zz87n   1/1     Running   0          2m6s    10.32.0.2   k8n0de01.example.com   <none>           <none>
+server                                         1/1     Running   2          46h     10.32.0.4   k8n0de01.example.com   <none>           <none>
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe  rc mysql | grep -i mysql
+Name:         mysql
+Selector:     app=mysql-app,deployment=86fbc8fffe383c8124941fc57d1b1189
+Labels:       app=mysql-app
+Annotations:  kubectl.kubernetes.io/next-controller-id: mysql-fe3be19707a75a635f3ab1001fb2d8fe
+  Labels:  app=mysql-app
+   mysql:
+    Image:      mysql:5.6
+      MYSQL_ROOT_PASSWORD:  mysql
+[root@k8n0de01 k8-2020-card1]#
+
+@@@@
+[root@k8n0de01 k8-2020-card1]# kubectl describe  pod  mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w | grep -i mysql
+Name:         mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w
+Labels:       app=mysql-app
+Controlled By:  ReplicationController/mysql
+  mysql:
+    Image:          mysql:5.6
+    Image ID:       docker-pullable://docker.io/mysql@sha256:a72a05bcf3914c902070765a506b1c8c17c06400258e7b574965763099dee9e1
+      MYSQL_ROOT_PASSWORD:  mysql
+  Normal  Scheduled  6m6s   default-scheduler              Successfully assigned my-namespace/mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w to k8n0de02.example.com
+  Normal  Pulling    6m5s   kubelet, k8n0de02.example.com  Pulling image "mysql:5.6"
+  Normal  Pulled     5m41s  kubelet, k8n0de02.example.com  Successfully pulled image "mysql:5.6"
+  Normal  Created    5m39s  kubelet, k8n0de02.example.com  Created container mysql
+  Normal  Started    5m38s  kubelet, k8n0de02.example.com  Started container mysql
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 k8-2020-card1]# kubectl rolling-update mysql postgresql --image=postgres
+Command "rolling-update" is deprecated, use "rollout" instead
+Created postgresql
+Scaling up postgresql from 0 to 3, scaling down mysql from 3 to 0 (keep 3 pods available, don't exceed 4 pods)
+Scaling postgresql up to 1
+^C
+[root@k8n0de01 k8-2020-card1]# kubectl get rc
+NAME         DESIRED   CURRENT   READY   AGE
+mysql        3         3         3       6m4s
+postgresql   1         1         0       51s
+
+
+@@@@ having some postgress
+[root@k8n0de01 k8-2020-card1]# kubectl describe rc postgresql
+Name:         postgresql
+Namespace:    my-namespace
+Selector:     app=mysql-app,deployment=d9555b1236ed397ebd949367d93b51cb
+Labels:       app=mysql-app
+Annotations:  kubectl.kubernetes.io/desired-replicas: 3
+              kubectl.kubernetes.io/next-controller-id: mysql-fe3be19707a75a635f3ab1001fb2d8fe
+              kubectl.kubernetes.io/original-replicas: 3
+              kubectl.kubernetes.io/update-source-id: mysql:6fa827ae-83c6-46c0-bb5c-592569b1a0f9
+Replicas:     1 current / 1 desired
+Pods Status:  1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=mysql-app
+           deployment=d9555b1236ed397ebd949367d93b51cb
+  Containers:
+   mysql:
+    Image:      postgres
+    Port:       3306/TCP
+    Host Port:  0/TCP
+    Environment:
+      MYSQL_ROOT_PASSWORD:  mysql
+    Mounts:                 <none>
+  Volumes:                  <none>
+Events:
+  Type    Reason            Age   From                    Message
+  ----    ------            ----  ----                    -------
+  Normal  SuccessfulCreate  68s   replication-controller  Created pod: postgresql-25ct4
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 ~]# kubectl get pods -o wide -w
+NAME                        READY   STATUS    RESTARTS   AGE   IP          NODE                   NOMINATED NODE   READINESS GATES
+multitool-6d598c8f8-hdjzw   1/1     Running   9          12d   10.32.0.6   k8n0de01.example.com   <none>           <none>
+mysql-v1-nnchl              1/1     Running   0          36m   10.38.0.2   k8n0de02.example.com   <none>           <none>
+mysql-v1-qlzs6              1/1     Running   0          37m   10.40.0.2   k8n0de03.example.com   <none>           <none>
+mysql-v1-sbt8r              1/1     Running   0          35m   10.32.0.9   k8n0de01.example.com   <none>           <none>
+server                      1/1     Running   2          46h   10.32.0.4   k8n0de01.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     Pending   0          0s    <none>      <none>                 <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     Pending   0          0s    <none>      k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     ContainerCreating   0          0s    <none>      k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     InvalidImageName    0          2s    <none>      k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     InvalidImageName    0          3s    10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     Terminating         0          2m41s   10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     Terminating         0          2m41s   10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     Terminating         0          2m43s   10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-f6kp4   0/1     Terminating         0          2m43s   10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w   0/1     Pending             0          0s      <none>      <none>                 <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w   0/1     Pending             0          0s      <none>      k8n0de02.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w   0/1     ContainerCreating   0          0s      <none>      k8n0de02.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w   1/1     Running             0          28s     10.38.0.1   k8n0de02.example.com   <none>           <none>
+mysql-v1-sbt8r                                 1/1     Terminating         0          45m     10.32.0.9   k8n0de01.example.com   <none>           <none>
+mysql-v1-sbt8r                                 0/1     Terminating         0          45m     10.32.0.9   k8n0de01.example.com   <none>           <none>
+mysql-v1-sbt8r                                 0/1     Terminating         0          45m     10.32.0.9   k8n0de01.example.com   <none>           <none>
+mysql-v1-sbt8r                                 0/1     Terminating         0          45m     10.32.0.9   k8n0de01.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-lmbsw   0/1     Pending             0          0s      <none>      <none>                 <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-lmbsw   0/1     Pending             0          0s      <none>      k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-lmbsw   0/1     ContainerCreating   0          0s      <none>      k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-lmbsw   1/1     Running             0          22s     10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-v1-nnchl                                 1/1     Terminating         0          47m     10.38.0.2   k8n0de02.example.com   <none>           <none>
+mysql-v1-nnchl                                 0/1     Terminating         0          47m     <none>      k8n0de02.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-zz87n   0/1     Pending             0          0s      <none>      <none>                 <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-zz87n   0/1     Pending             0          0s      <none>      k8n0de01.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-zz87n   0/1     ContainerCreating   0          0s      <none>      k8n0de01.example.com   <none>           <none>
+mysql-v1-nnchl                                 0/1     Terminating         0          47m     <none>      k8n0de02.example.com   <none>           <none>
+mysql-v1-nnchl                                 0/1     Terminating         0          47m     <none>      k8n0de02.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-zz87n   1/1     Running             0          2s      10.32.0.2   k8n0de01.example.com   <none>           <none>
+mysql-v1-qlzs6                                 1/1     Terminating         0          49m     10.40.0.2   k8n0de03.example.com   <none>           <none>
+mysql-v1-qlzs6                                 0/1     Terminating         0          49m     <none>      k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-zz87n   1/1     Running             0          70s     10.32.0.2   k8n0de01.example.com   <none>           <none>
+mysql-v1-qlzs6                                 0/1     Terminating         0          49m     <none>      k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w   1/1     Running             0          3m23s   10.38.0.1   k8n0de02.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-lmbsw   1/1     Running             0          2m16s   10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-v1-qlzs6                                 0/1     Terminating         0          49m     <none>      k8n0de03.example.com   <none>           <none>
+mysql-v1-qlzs6                                 0/1     Terminating         0          49m     <none>      k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-zz87n   1/1     Running             0          74s     10.32.0.2   k8n0de01.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-lmbsw   1/1     Running             0          2m20s   10.40.0.1   k8n0de03.example.com   <none>           <none>
+mysql-fe3be19707a75a635f3ab1001fb2d8fe-6wv6w   1/1     Running             0          3m27s   10.38.0.1   k8n0de02.example.com   <none>           <none>
+postgresql-25ct4                               0/1     Pending             0          0s      <none>      <none>                 <none>           <none>
+postgresql-25ct4                               0/1     Pending             0          0s      <none>      k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     ContainerCreating   0          0s      <none>      k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     Error               0          32s     10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     Error               1          33s     10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     CrashLoopBackOff    1          34s     10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     Error               2          49s     10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     CrashLoopBackOff    2          50s     10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     Error               3          76s     10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     CrashLoopBackOff    3          91s     10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     Error               4          2m3s    10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     CrashLoopBackOff    4          2m4s    10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     Error               5          3m26s   10.40.0.2   k8n0de03.example.com   <none>           <none>
+postgresql-25ct4                               0/1     CrashLoopBackOff    5          3m27s   10.40.0.2   k8n0de03.example.com   <none>           <none>
+
+
+

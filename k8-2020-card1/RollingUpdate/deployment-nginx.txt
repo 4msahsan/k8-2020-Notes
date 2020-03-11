@@ -1,0 +1,138 @@
+@@@ 
+kubectl create deploy --image=nginx nginx05  --dry-run  -o yaml > deployment-defination.yaml
+
+[root@k8n0de01 ~]# cat deployment-defination.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: myapp
+    type: front-end
+  name: myapp-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myapp
+  strategy: {}
+  template:
+    metadata:
+     name: myapp
+     labels:
+        app: myapp
+        type: front-end
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}
+[root@k8n0de01 ~]#
+
+@@@
+[root@k8n0de01 ~]# kubectl get deployment
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+multitool          1/1     1            1           20d
+myapp-deployment   3/3     3            3           2m45s
+[root@k8n0de01 ~]# kubectl describe deploy myapp-deployment
+Name:                   myapp-deployment
+Namespace:              my-namespace
+CreationTimestamp:      Tue, 10 Mar 2020 12:22:20 -0700
+Labels:                 app=myapp
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=myapp
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=myapp
+           type=front-end
+  Containers:
+   nginx:
+    Image:        nginx
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   myapp-deployment-76754b66c8 (3/3 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  2m56s  deployment-controller  Scaled up replica set myapp-deployment-76754b66c8 to 3
+[root@k8n0de01 ~]#
+
+@@@
+[root@k8n0de01 ~]# kubectl get pods -o wide;
+NAME                                READY   STATUS    RESTARTS   AGE     IP          NODE                   NOMINATED NODE   READINESS GATES
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          18d     <none>      k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-ngt77           1/1     Running   0          3h7m    10.40.0.1   k8n0de03.example.com   <none>           <none>
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   0          3m49s   10.32.0.2   k8n0de01.example.com   <none>           <none>
+myapp-deployment-76754b66c8-qphsz   1/1     Running   0          3m49s   10.40.0.3   k8n0de03.example.com   <none>           <none>
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   0          3m49s   10.38.0.2   k8n0de02.example.com   <none>           <none>
+nginx                               1/1     Running   0          55m     10.38.0.1   k8n0de02.example.com   <none>           <none>
+server                              1/1     Running   5          7d21h   10.32.0.3   k8n0de01.example.com   <none>           <none>
+[root@k8n0de01 ~]# kubectl describe pod myapp-deployment-76754b66c8-qphsz
+Name:         myapp-deployment-76754b66c8-qphsz
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de03.example.com/10.0.2.40
+Start Time:   Tue, 10 Mar 2020 12:22:21 -0700
+Labels:       app=myapp
+              pod-template-hash=76754b66c8
+              type=front-end
+Annotations:  <none>
+Status:       Running
+IP:           10.40.0.3
+IPs:
+  IP:           10.40.0.3
+Controlled By:  ReplicaSet/myapp-deployment-76754b66c8
+Containers:
+  nginx:
+    Container ID:   docker://734ff59a6ec13379d78320b4e01d1573adc83b9f6edd0f062bd89e20b35a1157
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Tue, 10 Mar 2020 12:22:25 -0700
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/myapp-deployment-76754b66c8-qphsz to k8n0de03.example.com
+  Normal  Pulling    4m8s       kubelet, k8n0de03.example.com  Pulling image "nginx"
+  Normal  Pulled     4m5s       kubelet, k8n0de03.example.com  Successfully pulled image "nginx"
+  Normal  Created    4m5s       kubelet, k8n0de03.example.com  Created container nginx
+  Normal  Started    4m5s       kubelet, k8n0de03.example.com  Started container nginx
+[root@k8n0de01 ~]#
+
+@@@@

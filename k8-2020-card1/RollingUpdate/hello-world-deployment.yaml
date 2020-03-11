@@ -1,0 +1,295 @@
+[root@k8n0de01 k8-2020-card1]# kubectl run nginx --image=nginx --replicas=6 --port=80 --dry-run -o yaml >> card1.yaml
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+[root@k8n0de01 k8-2020-card1]# ls
+card1.yaml
+[root@k8n0de01 k8-2020-card1]# cat card1.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: nginx
+  name: nginx
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      run: nginx
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: nginx
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}
+[root@k8n0de01 k8-2020-card1]#
+
+
+^C[root@k8n0de01 k8-2020-card1]# kubectl get pods;
+NAME                        READY   STATUS        RESTARTS   AGE
+multitool-6d598c8f8-hdjzw   1/1     Running       7          10d
+nginx-5578584966-6klzq      1/1     Running       0          3m42s
+nginx-5578584966-7qmpg      1/1     Running       0          3m42s
+nginx-5578584966-hl5vr      1/1     Running       0          3m42s
+nginx-5578584966-lcswb      1/1     Running       0          3m42s
+nginx-5578584966-vkxj2      1/1     Running       0          3m42s
+nginx-5578584966-w4c9l      1/1     Running       0          3m42s
+nginx01-svc                 1/1     Terminating   0          9d
+[root@k8n0de01 k8-2020-card1]#
+
+
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe deploy nginx
+Name:                   nginx
+Namespace:              my-namespace
+CreationTimestamp:      Mon, 02 Mar 2020 11:22:58 -0800
+Labels:                 run=nginx
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               run=nginx
+Replicas:               6 desired | 6 updated | 6 total | 6 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  run=nginx
+  Containers:
+   nginx:
+    Image:        nginx
+    Port:         80/TCP
+    Host Port:    0/TCP
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-5578584966 (6/6 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  4m22s  deployment-controller  Scaled up replica set nginx-5578584966 to 6
+[root@k8n0de01 k8-2020-card1]#
+ 
+ 
+ [root@k8n0de01 k8-2020-card1]# kubectl get pods;
+NAME                        READY   STATUS        RESTARTS   AGE
+multitool-6d598c8f8-hdjzw   1/1     Running       7          10d
+nginx-5578584966-6klzq      1/1     Running       0          5m15s
+nginx-5578584966-7qmpg      1/1     Running       0          5m15s
+nginx-5578584966-hl5vr      1/1     Running       0          5m15s
+nginx-5578584966-lcswb      1/1     Running       0          5m15s
+nginx-5578584966-vkxj2      1/1     Running       0          5m15s
+nginx-5578584966-w4c9l      1/1     Running       0          5m15s
+nginx01-svc                 1/1     Terminating   0          9d
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod nginx-5578584966-6klzq
+Name:         nginx-5578584966-6klzq
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Mon, 02 Mar 2020 11:22:58 -0800
+Labels:       pod-template-hash=5578584966
+              run=nginx
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.12
+IPs:
+  IP:           10.32.0.12
+Controlled By:  ReplicaSet/nginx-5578584966
+Containers:
+  nginx:
+    Container ID:   docker://81025d526ce854333d43ac1411559950ee2fb24249277f400e7dc376b5d5674b
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:380eb808e2a3b0dd954f92c1cae2f845e6558a15037efefcabc5b4e03d666d03
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Mon, 02 Mar 2020 11:23:16 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/nginx-5578584966-6klzq to k8n0de01.example.com
+  Normal  Pulling    5m22s      kubelet, k8n0de01.example.com  Pulling image "nginx"
+  Normal  Pulled     5m7s       kubelet, k8n0de01.example.com  Successfully pulled image "nginx"
+  Normal  Created    5m7s       kubelet, k8n0de01.example.com  Created container nginx
+  Normal  Started    5m6s       kubelet, k8n0de01.example.com  Started container nginx
+[root@k8n0de01 k8-2020-card1]# kubectl get svc
+No resources found in my-namespace namespace.
+[root@k8n0de01 k8-2020-card1]# kubectl get svc --all-namespaces;
+NAMESPACE     NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                  AGE
+default       kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP                  27d
+default       test-nginx   ClusterIP   10.106.146.95   <none>        80/TCP                   27d
+kube-system   kube-dns     ClusterIP   10.96.0.10      <none>        53/UDP,53/TCP,9153/TCP   27d
+[root@k8n0de01 k8-2020-card1]#
+
+
+ 
+[root@k8n0de01 k8-2020-card1]# kubectl expose deploy nginx
+service/nginx exposed
+[root@k8n0de01 k8-2020-card1]# kubectl get svc
+NAME    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+nginx   ClusterIP   10.108.24.192   <none>        80/TCP    5s
+[root@k8n0de01 k8-2020-card1]# curl 10.108.24.192
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+[root@k8n0de01 k8-2020-card1]#
+
+
+ 
+[root@k8n0de01 k8-2020-card1]# kubectl get nodes --show-labels;
+NAME                   STATUS     ROLES    AGE   VERSION   LABELS
+k8n0de01.example.com   Ready      master   27d   v1.17.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8n0de01.example.com,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+k8n0de02.example.com   NotReady   <none>   27d   v1.17.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8n0de02.example.com,kubernetes.io/os=linux
+k8n0de03.example.com   NotReady   <none>   27d   v1.17.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8n0de03.example.com,kubernetes.io/os=linux
+[root@k8n0de01 k8-2020-card1]#
+
+ 
+https://github.com/4msahsan/kubernetes-volume
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe pod server
+Name:         server
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Mon, 02 Mar 2020 13:05:23 -0800
+Labels:       <none>
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.7
+IPs:
+  IP:  10.32.0.7
+Containers:
+  nginx:
+    Container ID:   docker://e2583554e53e915874b7d9c3b747f871bab4243f0da38b6f1fe1821c5517bc31
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:380eb808e2a3b0dd954f92c1cae2f845e6558a15037efefcabc5b4e03d666d03
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 02 Mar 2020 13:05:29 -0800
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /git-repo from git-volume (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  git-volume:
+    Type:        GitRepo (a volume that is pulled from git when the pod is created)
+    Repository:  https://github.com/4msahsan/kubernetes-volume
+    Revision:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From                           Message
+  ----    ------     ----       ----                           -------
+  Normal  Scheduled  <unknown>  default-scheduler              Successfully assigned my-namespace/server to k8n0de01.example.com
+  Normal  Pulling    2m23s      kubelet, k8n0de01.example.com  Pulling image "nginx"
+  Normal  Pulled     2m20s      kubelet, k8n0de01.example.com  Successfully pulled image "nginx"
+  Normal  Created    2m20s      kubelet, k8n0de01.example.com  Created container nginx
+  Normal  Started    2m20s      kubelet, k8n0de01.example.com  Started container nginx
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 k8-2020-card1]# kubectl get pods;
+NAME                        READY   STATUS        RESTARTS   AGE
+multitool-6d598c8f8-hdjzw   1/1     Running       7          10d
+nginx01-svc                 1/1     Terminating   0          9d
+server                      1/1     Running       0          4m22s
+[root@k8n0de01 k8-2020-card1]# cat pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: server
+spec:
+  containers:
+    -
+      image: nginx
+      name: nginx
+      volumeMounts:
+        -
+          mountPath: /git-repo
+          name: git-volume
+
+
+  volumes:
+    -
+     gitRepo:
+       repository: "https://github.com/4msahsan/kubernetes-volume"
+       revision: ""
+     name: git-volume
+[root@k8n0de01 k8-2020-card1]#
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 

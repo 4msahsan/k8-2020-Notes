@@ -1,0 +1,110 @@
+@@ CLUSTERIP 
+[root@k8n0de01 ~]# kubectl run hello-world --image=docker.io/tutum/hello-world --replicas=3 --port=80
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+deployment.apps/hello-world created
+[root@k8n0de01 ~]# kubectl  get pods;
+NAME                           READY   STATUS              RESTARTS   AGE
+hello-world-55cc89c496-mm44k   0/1     ContainerCreating   0          3s
+hello-world-55cc89c496-xk55h   0/1     ContainerCreating   0          3s
+hello-world-55cc89c496-xlw9l   0/1     ContainerCreating   0          3s
+multitool-6d598c8f8-hdjzw      1/1     Running             7          10d
+nginx01-svc                    1/1     Terminating         0          10d
+server                         1/1     Running             0          80m
+[root@k8n0de01 ~]# kubectl  get pods;
+NAME                           READY   STATUS              RESTARTS   AGE
+hello-world-55cc89c496-mm44k   0/1     ContainerCreating   0          8s
+hello-world-55cc89c496-xk55h   1/1     Running             0          8s
+hello-world-55cc89c496-xlw9l   0/1     ContainerCreating   0          8s
+multitool-6d598c8f8-hdjzw      1/1     Running             7          10d
+nginx01-svc                    1/1     Terminating         0          10d
+server                         1/1     Running             0          80m
+[root@k8n0de01 ~]# kubectl  get pods;
+NAME                           READY   STATUS        RESTARTS   AGE
+hello-world-55cc89c496-mm44k   1/1     Running       0          12s
+hello-world-55cc89c496-xk55h   1/1     Running       0          12s
+hello-world-55cc89c496-xlw9l   1/1     Running       0          12s
+multitool-6d598c8f8-hdjzw      1/1     Running       7          10d
+nginx01-svc                    1/1     Terminating   0          10d
+server                         1/1     Running       0          80m
+[root@k8n0de01 ~]#
+
+
+####
+[root@k8n0de01 k8-2020-card1]# kubectl expose deploy hello-world --port=80 --type=ClusterIP
+service/hello-world exposed
+[root@k8n0de01 k8-2020-card1]# kubectl get svc
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+hello-world   ClusterIP   10.98.171.3     <none>        80/TCP    7s
+nginx         ClusterIP   10.108.24.192   <none>        80/TCP    3h21m
+[root@k8n0de01 k8-2020-card1]#
+
+[root@k8n0de01 k8-2020-card1]# kubectl get svc
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+hello-world   ClusterIP   10.98.171.3     <none>        80/TCP    7s
+nginx         ClusterIP   10.108.24.192   <none>        80/TCP    3h21m
+[root@k8n0de01 k8-2020-card1]# kubectl describe svc hello-world
+Name:              hello-world
+Namespace:         my-namespace
+Labels:            run=hello-world
+Annotations:       <none>
+Selector:          run=hello-world
+Type:              ClusterIP
+IP:                10.98.171.3
+Port:              <unset>  80/TCP
+TargetPort:        80/TCP
+Endpoints:         10.32.0.10:80,10.32.0.8:80,10.32.0.9:80
+Session Affinity:  None
+Events:            <none>
+[root@k8n0de01 k8-2020-card1]# curl 10.98.171.3
+<html>
+<head>
+        <title>Hello world!</title>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+        <style>
+        body {
+                background-color: white;
+                text-align: center;
+                padding: 50px;
+                font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+        }
+
+        #logo {
+                margin-bottom: 40px;
+        }
+        </style>
+</head>
+<body>
+        <img id="logo" src="logo.png" />
+        <h1>Hello world!</h1>
+        <h3>My hostname is hello-world-55cc89c496-xlw9l</h3>                    <h3>Links found</h3>
+                                        <b>NGINX</b> listening in 80 available at tcp://10.108.24.192:80<br />
+                                                <b>KUBERNETES</b> listening in 443 available at tcp://10.96.0.1:443<br />
+                                </body>
+</html>
+[root@k8n0de01 k8-2020-card1]#
+
+
+[root@k8n0de01 k8-2020-card1]# kubectl describe svc hello-world
+Name:              hello-world
+Namespace:         my-namespace
+Labels:            run=hello-world
+Annotations:       <none>
+Selector:          run=hello-world
+Type:              ClusterIP
+IP:                10.98.171.3
+Port:              <unset>  80/TCP
+TargetPort:        80/TCP
+Endpoints:         10.32.0.10:80,10.32.0.8:80,10.32.0.9:80
+Session Affinity:  None
+Events:            <none>
+[root@k8n0de01 k8-2020-card1]# curl 10.32.0.10:80
+<html>
+<head>
+        <title>Hello world!</title>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+        <style>
+        body {
+
+
+
+

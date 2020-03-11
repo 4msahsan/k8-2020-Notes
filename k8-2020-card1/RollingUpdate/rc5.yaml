@@ -1,0 +1,71 @@
+[root@k8n0de01 k8-2020-card1]# kubectl get pods -o wide -w
+NAME                           READY   STATUS        RESTARTS   AGE    IP           NODE                   NOMINATED NODE   READINESS GATES
+hello-world-55cc89c496-mm44k   1/1     Running       1          24h    10.32.0.10   k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xk55h   1/1     Running       1          24h    10.32.0.2    k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xlw9l   1/1     Running       1          24h    10.32.0.9    k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-hdjzw      1/1     Running       8          11d    10.32.0.4    k8n0de01.example.com   <none>           <none>
+mysql-8p5pf                    1/1     Running       0          11m    10.32.0.15   k8n0de01.example.com   <none>           <none>
+mysql-fwzwg                    1/1     Running       0          12m    10.32.0.17   k8n0de01.example.com   <none>           <none>
+mysql-lclsv                    1/1     Running       0          10m    10.32.0.11   k8n0de01.example.com   <none>           <none>
+mysql-pv25s                    1/1     Running       0          13m    10.32.0.16   k8n0de01.example.com   <none>           <none>
+mysql-zxpd9                    1/1     Running       0          9m8s   10.32.0.13   k8n0de01.example.com   <none>           <none>
+nginx01-svc                    1/1     Terminating   0          11d    10.38.0.1    k8n0de02.example.com   <none>           <none>
+server                         1/1     Running       1          25h    10.32.0.7    k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     Pending       0          0s     <none>       <none>                 <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     Pending       0          0s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     ContainerCreating   0          0s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   1/1     Running             0          19s    10.32.0.12   k8n0de01.example.com   <none>           <none>
+
+
+@@@@
+^C[root@k8n0de01 k8-2020-card1]# kubectl get pods -o wide -w
+NAME                           READY   STATUS        RESTARTS   AGE    IP           NODE                   NOMINATED NODE   READINESS GATES
+hello-world-55cc89c496-mm44k   1/1     Running       1          24h    10.32.0.10   k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xk55h   1/1     Running       1          24h    10.32.0.2    k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xlw9l   1/1     Running       1          24h    10.32.0.9    k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-hdjzw      1/1     Running       8          11d    10.32.0.4    k8n0de01.example.com   <none>           <none>
+mysql-8p5pf                    1/1     Running       0          11m    10.32.0.15   k8n0de01.example.com   <none>           <none>
+mysql-fwzwg                    1/1     Running       0          12m    10.32.0.17   k8n0de01.example.com   <none>           <none>
+mysql-lclsv                    1/1     Running       0          10m    10.32.0.11   k8n0de01.example.com   <none>           <none>
+mysql-pv25s                    1/1     Running       0          13m    10.32.0.16   k8n0de01.example.com   <none>           <none>
+mysql-zxpd9                    1/1     Running       0          9m8s   10.32.0.13   k8n0de01.example.com   <none>           <none>
+nginx01-svc                    1/1     Terminating   0          11d    10.38.0.1    k8n0de02.example.com   <none>           <none>
+server                         1/1     Running       1          25h    10.32.0.7    k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     Pending       0          0s     <none>       <none>                 <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     Pending       0          0s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     ContainerCreating   0          0s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   1/1     Running             0          19s    10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-zxpd9                                    1/1     Terminating         0          10m    10.32.0.13   k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-zhvqm   0/1     Pending             0          1s     <none>       <none>                 <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-zhvqm   0/1     Pending             0          3s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-zhvqm   0/1     ContainerCreating   0          9s     <none>       k8n0de01.example.com   <none>           <none>
+
+
+
+root@k8n0de01 k8-2020-card1]# kubectl get pods -o wide -w
+NAME                           READY   STATUS        RESTARTS   AGE    IP           NODE                   NOMINATED NODE   READINESS GATES
+hello-world-55cc89c496-mm44k   1/1     Running       1          24h    10.32.0.10   k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xk55h   1/1     Running       1          24h    10.32.0.2    k8n0de01.example.com   <none>           <none>
+hello-world-55cc89c496-xlw9l   1/1     Running       1          24h    10.32.0.9    k8n0de01.example.com   <none>           <none>
+multitool-6d598c8f8-hdjzw      1/1     Running       8          11d    10.32.0.4    k8n0de01.example.com   <none>           <none>
+mysql-8p5pf                    1/1     Running       0          11m    10.32.0.15   k8n0de01.example.com   <none>           <none>
+mysql-fwzwg                    1/1     Running       0          12m    10.32.0.17   k8n0de01.example.com   <none>           <none>
+mysql-lclsv                    1/1     Running       0          10m    10.32.0.11   k8n0de01.example.com   <none>           <none>
+mysql-pv25s                    1/1     Running       0          13m    10.32.0.16   k8n0de01.example.com   <none>           <none>
+mysql-zxpd9                    1/1     Running       0          9m8s   10.32.0.13   k8n0de01.example.com   <none>           <none>
+nginx01-svc                    1/1     Terminating   0          11d    10.38.0.1    k8n0de02.example.com   <none>           <none>
+server                         1/1     Running       1          25h    10.32.0.7    k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     Pending       0          0s     <none>       <none>                 <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     Pending       0          0s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   0/1     ContainerCreating   0          0s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-cdw9q   1/1     Running             0          19s    10.32.0.12   k8n0de01.example.com   <none>           <none>
+mysql-zxpd9                                    1/1     Terminating         0          10m    10.32.0.13   k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-zhvqm   0/1     Pending             0          1s     <none>       <none>                 <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-zhvqm   0/1     Pending             0          3s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-zhvqm   0/1     ContainerCreating   0          9s     <none>       k8n0de01.example.com   <none>           <none>
+mysql-zxpd9                                    0/1     Terminating         0          10m    <none>       k8n0de01.example.com   <none>           <none>
+mysql-837acb57df612d074837599c8ff75061-zhvqm   1/1     Running             0          21s    10.32.0.13   k8n0de01.example.com   <none>           <none>
+mysql-zxpd9                                    0/1     Terminating         0          10m    <none>       k8n0de01.example.com   <none>           <none>
+mysql-zxpd9                                    0/1     Terminating         0          10m    <none>       k8n0de01.example.com   <none>           <none>
+
+
