@@ -1,0 +1,271 @@
+@@@@
+Defining and Querying Labels and Annotations
+Create three different Pods with the names frontend, backend and database that use the image nginx.
+Declare labels for those Pods as follows:
+frontend: env=prod, team=shiny
+backend: env=prod, team=legacy, app=v1.2.4
+database: env=prod, team=storage
+Declare annotations for those Pods as follows:
+frontend: contact=John Doe, commit=2d3mg3
+backend: contact=Mary Harris
+Render the list of all Pods and their labels.
+Use label selectors on the command line to query for all production Pods that belong to the teams shiny and legacy.
+Remove the label env from the backend Pod and rerun the selection.
+Render the surrounding 3 lines of YAML of all Pods that have annotations.
+
+
+@@@@@
+[root@k8n0de01 ~]# kubectl run frontend --image=nginx --restart=Never --labels=env=prod,team=shiny
+pod/frontend created
+[root@k8n0de01 ~]# kubectl get pods;
+NAME                                READY   STATUS    RESTARTS   AGE
+frontend                            1/1     Running   0          21s
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          25d
+multitool-6d598c8f8-ngt77           1/1     Running   4          7d4h
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   4          7d1h
+myapp-deployment-76754b66c8-qphsz   1/1     Running   4          7d1h
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   4          7d1h
+mysql-deploy-6c9fb594fc-nh9p9       1/1     Running   3          6d3h
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running   3          6d3h
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running   3          6d3h
+mysql-j5cvq                         1/1     Running   3          5d22h
+mysql-kn7sn                         1/1     Running   3          5d22h
+mysql-pk9rf                         1/1     Running   3          5d22h
+nginx                               1/1     Running   4          7d1h
+server                              1/1     Running   9          14d
+[root@k8n0de01 ~]#
+
+@@@@
+[root@k8n0de01 ~]# kubectl run backend  --image=nginx --restart=Never --labels=env=prod,team=legacy,app=v1.2.4
+pod/backend created
+[root@k8n0de01 ~]# kubectl get pods;
+NAME                                READY   STATUS    RESTARTS   AGE
+backend                             1/1     Running   0          6s
+frontend                            1/1     Running   0          113s
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          25d
+multitool-6d598c8f8-ngt77           1/1     Running   4          7d4h
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   4          7d1h
+myapp-deployment-76754b66c8-qphsz   1/1     Running   4          7d1h
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   4          7d1h
+mysql-deploy-6c9fb594fc-nh9p9       1/1     Running   3          6d3h
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running   3          6d3h
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running   3          6d3h
+mysql-j5cvq                         1/1     Running   3          5d22h
+mysql-kn7sn                         1/1     Running   3          5d22h
+mysql-pk9rf                         1/1     Running   3          5d22h
+nginx                               1/1     Running   4          7d1h
+server                              1/1     Running   9          14d
+[root@k8n0de01 ~]#
+[root@k8n0de01 ~]# kubectl describe pod backend
+Name:         backend
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 17 Mar 2020 13:24:01 -0700
+Labels:       app=v1.2.4
+              env=prod
+              team=legacy
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.10
+IPs:
+  IP:  10.32.0.10
+Containers:
+  backend:
+    Container ID:   docker://39a2a6a9c226dd499cead2b3639ae65b2b112ecc4ec52e1e78cc218cfc025357
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Tue, 17 Mar 2020 13:24:03 -0700
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-qs6wx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-qs6wx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-qs6wx
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age   From                           Message
+  ----    ------     ----  ----                           -------
+  Normal  Scheduled  33s   default-scheduler              Successfully assigned my-namespace/backend to k8n0de01.example.com
+  Normal  Pulling    32s   kubelet, k8n0de01.example.com  Pulling image "nginx"
+  Normal  Pulled     31s   kubelet, k8n0de01.example.com  Successfully pulled image "nginx"
+  Normal  Created    31s   kubelet, k8n0de01.example.com  Created container backend
+  Normal  Started    31s   kubelet, k8n0de01.example.com  Started container backend
+[root@k8n0de01 ~]#
+
+@@@@
+
+kubectl edit pod frontend
+ apiVersion: v1
+      6 kind: Pod
+      7 metadata:
+      8   annotations:
+      9     commit: 2d3mg3
+     10     contact: John Doe
+     11   creationTimestamp: "2020-03-17T20:22:14Z"
+     12   labels:
+     13     env: prod
+     14     team: shiny
+
+[root@k8n0de01 ~]# kubectl describe pod frontend
+Name:         frontend
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 17 Mar 2020 13:22:14 -0700
+Labels:       env=prod
+              team=shiny
+Annotations:  commit: 2d3mg3
+              contact: John Doe
+Status:       Running
+IP:           10.32.0.9
+
+@@@
+[root@k8n0de01 ~]# kubectl describe pod backend
+Name:         backend
+Namespace:    my-namespace
+Priority:     0
+Node:         k8n0de01.example.com/10.0.2.20
+Start Time:   Tue, 17 Mar 2020 13:24:01 -0700
+Labels:       app=v1.2.4
+              env=prod
+              team=legacy
+Annotations:  contact: Marry Harris
+Status:       Running
+IP:           10.32.0.10
+IPs:
+  IP:  10.32.0.10
+Containers:
+  backend:
+    Container ID:   docker://39a2a6a9c226dd499cead2b3639ae65b2b112ecc4ec52e1e78cc218cfc025357
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+
+@@@@
+[root@k8n0de01 ~]# kubectl describe pods | grep -i annotations
+Annotations:  contact: Marry Harris
+Annotations:  <none>
+Annotations:  commit: 2d3mg3
+Annotations:    <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+Annotations:  <none>
+[root@k8n0de01 ~]#
+
+@@@
+[root@k8n0de01 ~]# kubectl get pods -l 'team in (shiny,legacy)',env=prod --show-labels;
+NAME       READY   STATUS    RESTARTS   AGE    LABELS
+backend    1/1     Running   0          98m    app=v1.2.4,env=prod,team=legacy
+frontend   1/1     Running   0          100m   env=prod,team=shiny
+[root@k8n0de01 ~]#
+
+@@@remove labels
+[root@k8n0de01 ~]# kubectl label pods backend env-
+pod/backend labeled
+[root@k8n0de01 ~]# kubectl get pods --show-labels;
+NAME                                READY   STATUS    RESTARTS   AGE    LABELS
+backend                             1/1     Running   0          100m   app=v1.2.4,team=legacy
+database                            1/1     Running   0          98m    env=prod,team=storage
+frontend                            1/1     Running   0          102m   env=prod,team=shiny
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          25d    pod-template-hash=6d598c8f8,run=multitool
+multitool-6d598c8f8-ngt77           1/1     Running   4          7d5h   pod-template-hash=6d598c8f8,run=multitool
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+myapp-deployment-76754b66c8-qphsz   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+mysql-deploy-6c9fb594fc-nh9p9       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-j5cvq                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+mysql-kn7sn                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+mysql-pk9rf                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+nginx                               1/1     Running   4          7d3h   run=nginx
+server                              1/1     Running   9          15d    <none>
+[root@k8n0de01 ~]#
+
+@@@@@
+[root@k8n0de01 ~]# kubectl get pods --show-labels;
+NAME                                READY   STATUS    RESTARTS   AGE    LABELS
+backend                             1/1     Running   0          100m   app=v1.2.4,team=legacy
+database                            1/1     Running   0          98m    env=prod,team=storage
+frontend                            1/1     Running   0          102m   env=prod,team=shiny
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          25d    pod-template-hash=6d598c8f8,run=multitool
+multitool-6d598c8f8-ngt77           1/1     Running   4          7d5h   pod-template-hash=6d598c8f8,run=multitool
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+myapp-deployment-76754b66c8-qphsz   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+mysql-deploy-6c9fb594fc-nh9p9       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-j5cvq                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+mysql-kn7sn                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+mysql-pk9rf                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+nginx                               1/1     Running   4          7d3h   run=nginx
+server                              1/1     Running   9          15d    <none>
+[root@k8n0de01 ~]# kubectl label pods frontend env-
+pod/frontend labeled
+[root@k8n0de01 ~]# kubectl get pods --show-labels;
+NAME                                READY   STATUS    RESTARTS   AGE    LABELS
+backend                             1/1     Running   0          101m   app=v1.2.4,team=legacy
+database                            1/1     Running   0          99m    env=prod,team=storage
+frontend                            1/1     Running   0          103m   team=shiny
+multitool-6d598c8f8-hdjzw           0/1     Evicted   0          25d    pod-template-hash=6d598c8f8,run=multitool
+multitool-6d598c8f8-ngt77           1/1     Running   4          7d5h   pod-template-hash=6d598c8f8,run=multitool
+myapp-deployment-76754b66c8-m5xfs   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+myapp-deployment-76754b66c8-qphsz   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+myapp-deployment-76754b66c8-rxpbp   1/1     Running   4          7d2h   app=myapp,pod-template-hash=76754b66c8,type=front-end
+mysql-deploy-6c9fb594fc-nh9p9       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running   3          6d4h   app=mysql-deploy,pod-template-hash=6c9fb594fc
+mysql-j5cvq                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+mysql-kn7sn                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+mysql-pk9rf                         1/1     Running   3          6d     app=mysql-app,deployment=v1
+nginx                               1/1     Running   4          7d3h   run=nginx
+server                              1/1     Running   9          15d    <none>
+[root@k8n0de01 ~]#
+@@@@
+[root@k8n0de01 ~]# kubectl get pods -o yaml | grep -C 3 'annotation'
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      contact: Marry Harris
+    creationTimestamp: "2020-03-17T20:24:01Z"
+    labels:
+--
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      commit: 2d3mg3
+      contact: John Doe
+    creationTimestamp: "2020-03-17T20:22:14Z"
+[root@k8n0de01 ~]#
+
+
+
