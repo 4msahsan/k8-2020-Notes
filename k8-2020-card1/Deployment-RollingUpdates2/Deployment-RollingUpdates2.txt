@@ -1,0 +1,398 @@
+Performing Rolling Updates for a Deployment
+Create a Deployment named deploy with 3 replicas. The Pods should use the nginx image and the name nginx. The Deployment uses the label tier=backend. The Pods should use the label app=v1.
+List the Deployment and ensure that the correct number of replicas is running.
+Update the image to nginx:latest.
+Verify that the change has been rolled out to all replicas.
+Scale the Deployment to 5 replicas.
+Have a look at the Deployment rollout history.
+Revert the Deployment to revision 1.
+Ensure that the Pods use the image nginx.
+
+@@@
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl create deploy deploy02 --image=nginx --dry-run -o yaml > deploy02.yaml
+[root@k8n0de01 Deployment-RollingUpdates2]# ls
+deploy02.yaml
+[root@k8n0de01 Deployment-RollingUpdates2]# cat deploy02.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: deploy02
+  name: deploy02
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deploy02
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: deploy02
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl create -f deploy02.yaml
+deployment.apps/deploy02 created
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl get deploy;
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+deploy02           3/3     3            3           38s
+multitool          1/1     1            1           28d
+myapp-deployment   3/3     3            3           8d
+mysql-deploy       3/3     3            3           7d20h
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl create -f deploy02.yaml
+deployment.apps/deploy02 created
+[root@k8n0de01 Deployment-RollingUpdates2]# cat deploy02.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: deploy02
+    tier: backend
+  name: deploy02
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: deploy02
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: deploy02
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+@@@ addinf tier=backend
+
+@@@
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl describe deploy deploy02
+Name:                   deploy02
+Namespace:              my-namespace
+CreationTimestamp:      Wed, 18 Mar 2020 12:39:16 -0700
+Labels:                 app=deploy02
+                        tier=backend
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=deploy02
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=deploy02
+  Containers:
+   nginx:
+    Image:        nginx
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   deploy02-7999dd7df8 (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  67s   deployment-controller  Scaled up replica set deploy02-7999dd7df8 to 3
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl describe deploy deploy02 | grep -C 3 Labels
+Name:                   deploy02
+Namespace:              my-namespace
+CreationTimestamp:      Wed, 18 Mar 2020 12:39:16 -0700
+Labels:                 app=deploy02
+                        tier=backend
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=deploy02
+--
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=deploy02
+  Containers:
+   nginx:
+    Image:        nginx
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl get   pods  --show-labels | grep -i deploy02
+deploy02-7999dd7df8-6tr4h           1/1     Running     0          4m42s   app=deploy02,pod-template-hash=7999dd7df8
+deploy02-7999dd7df8-dndkg           1/1     Running     0          4m42s   app=deploy02,pod-template-hash=7999dd7df8
+deploy02-7999dd7df8-g9z6q           1/1     Running     0          4m42s   app=deploy02,pod-template-hash=7999dd7df8
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl describe deploy | grep  Image
+    Image:        nginx:latest
+    Image:        praqma/network-multitool
+    Image:        nginx
+    Image:      mysql:5.5
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+@@@
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl describe  pods deploy02 | grep -C 3 Image
+Containers:
+  nginx:
+    Container ID:   docker://eb96bc5836dd721bfebbc402a281db60246928d2df64b42bfff4b9ed4a0cb405
+    Image:          nginx:latest
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+--
+Containers:
+  nginx:
+    Container ID:   docker://d6d32fa6b431455044b024c66e36c957716e672564b10d0fcffbc9f208786a54
+    Image:          nginx:latest
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+--
+Containers:
+  nginx:
+    Container ID:   docker://bc1b28c69744ab574fdb2253b27bb93bbecb68c30b029503a92c6a70b463f018
+    Image:          nginx:latest
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+
+@@@
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl rollout history deploy
+deployment.apps/deploy02
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+
+deployment.apps/multitool
+REVISION  CHANGE-CAUSE
+1         <none>
+
+deployment.apps/myapp-deployment
+REVISION  CHANGE-CAUSE
+1         <none>
+
+deployment.apps/mysql-deploy
+REVISION  CHANGE-CAUSE
+2         <none>
+6         <none>
+7         <none>
+
+[root@k8n0de01 Deployment-RollingUpdates2]#
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl rollout history deployment.apps/deploy02 --revision=2
+deployment.apps/deploy02 with revision #2
+Pod Template:
+  Labels:       app=deploy02
+        pod-template-hash=8575c54f4c
+  Containers:
+   nginx:
+    Image:      nginx:latest
+    Port:       <none>
+    Host Port:  <none>
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+
+
+@@@@
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl scale deploy deploy02 --replicas=5
+deployment.apps/deploy02 scaled
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+deploy02           5/5     5            5           40m
+multitool          1/1     1            1           28d
+myapp-deployment   3/3     3            3           8d
+mysql-deploy       3/3     3            3           7d21h
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl get pods;
+NAME                                READY   STATUS      RESTARTS   AGE
+backend                             0/1     Completed   0          23h
+database                            0/1     Completed   0          23h
+deploy02-8575c54f4c-28c6d           1/1     Running     0          30s
+deploy02-8575c54f4c-8h72w           1/1     Running     0          29m
+deploy02-8575c54f4c-j8wk5           1/1     Running     0          29m
+deploy02-8575c54f4c-s8ndw           1/1     Running     0          29m
+deploy02-8575c54f4c-svt22           1/1     Running     0          30s
+frontend                            0/1     Completed   0          23h
+multitool-6d598c8f8-dh7gl           1/1     Running     1          161m
+multitool-6d598c8f8-hdjzw           0/1     Evicted     0          26d
+myapp-deployment-76754b66c8-hn5hx   1/1     Running     1          161m
+myapp-deployment-76754b66c8-m5xfs   1/1     Running     6          8d
+myapp-deployment-76754b66c8-rxpbp   1/1     Running     6          8d
+mysql-deploy-6c9fb594fc-c4hp7       1/1     Running     1          161m
+mysql-deploy-6c9fb594fc-q4qv9       1/1     Running     5          7d3h
+mysql-deploy-6c9fb594fc-rfhq5       1/1     Running     5          7d3h
+mysql-g9dc7                         1/1     Running     1          161m
+mysql-j5cvq                         1/1     Running     5          6d22h
+mysql-kn7sn                         1/1     Running     5          6d22h
+nginx                               1/1     Running     6          8d
+server                              1/1     Running     11         15d
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl describe deploy deploy02 | grep -C 3 replica
+  Progressing    True    NewReplicaSetAvailable
+  Available      True    MinimumReplicasAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   deploy02-8575c54f4c (5/5 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  41m   deployment-controller  Scaled up replica set deploy02-7999dd7df8 to 3
+  Normal  ScalingReplicaSet  30m   deployment-controller  Scaled up replica set deploy02-8575c54f4c to 1
+  Normal  ScalingReplicaSet  30m   deployment-controller  Scaled down replica set deploy02-7999dd7df8 to 2
+  Normal  ScalingReplicaSet  30m   deployment-controller  Scaled up replica set deploy02-8575c54f4c to 2
+  Normal  ScalingReplicaSet  30m   deployment-controller  Scaled down replica set deploy02-7999dd7df8 to 1
+  Normal  ScalingReplicaSet  30m   deployment-controller  Scaled up replica set deploy02-8575c54f4c to 3
+  Normal  ScalingReplicaSet  30m   deployment-controller  Scaled down replica set deploy02-7999dd7df8 to 0
+  Normal  ScalingReplicaSet  105s  deployment-controller  Scaled up replica set deploy02-8575c54f4c to 5
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+
+
+@@@@
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl rollout history deploy
+deployment.apps/deploy02
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+
+deployment.apps/multitool
+REVISION  CHANGE-CAUSE
+1         <none>
+
+deployment.apps/myapp-deployment
+REVISION  CHANGE-CAUSE
+1         <none>
+
+deployment.apps/mysql-deploy
+REVISION  CHANGE-CAUSE
+2         <none>
+6         <none>
+7         <none>
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl rollout undo deployment/deploy02 --to-revision=1
+deployment.apps/deploy02 rolled back
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl rollout history deploy
+deployment.apps/deploy02
+REVISION  CHANGE-CAUSE
+2         <none>
+3         <none>
+
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl rollout history deploy --revision=3
+deployment.apps/deploy02 with revision #3
+Pod Template:
+  Labels:       app=deploy02
+        pod-template-hash=7999dd7df8
+  Containers:
+   nginx:
+    Image:      nginx
+    Port:       <none>
+    Host Port:  <none>
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+unable to find the specified revision
+unable to find the specified revision
+unable to find the specified revision
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+@@@So the image rookback to nginx only
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl describe pods deploy02 | grep -C 3 Image
+Containers:
+  nginx:
+    Container ID:   docker://c8c65fd0ac335f09ae6288876605cb3a209c74fe7b945f3b1216764a8904d341
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+--
+Containers:
+  nginx:
+    Container ID:   docker://45ec2dee93221a6ee583359593d9395c7af66101a25dae16100b1d6899770e2b
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+--
+Containers:
+  nginx:
+    Container ID:   docker://60634716522ad816388e52f6740d877972f3be5813f6677e7b800c8ce7b5c538
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+--
+Containers:
+  nginx:
+    Container ID:   docker://db238657800a845e7112120402ec970e50036d49d738d775f53928161de0b961
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+--
+Containers:
+  nginx:
+    Container ID:   docker://d1919369b1586579cf4819988d490027887565b610ce054d6dfaba666bf03865
+    Image:          nginx
+    Image ID:       docker-pullable://docker.io/nginx@sha256:2539d4344dd18e1df02be842ffc435f8e1f699cfc55516e2cf2cb16b7a9aea0b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+[root@k8n0de01 Deployment-RollingUpd
+
+[root@k8n0de01 Deployment-RollingUpdates2]# kubectl describe deploy  deploy02 | grep -C 3 Image
+  Labels:  app=deploy02
+  Containers:
+   nginx:
+    Image:        nginx
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+[root@k8n0de01 Deployment-RollingUpdates2]#
+
+
+
+
+
+
+
+
+
+
+

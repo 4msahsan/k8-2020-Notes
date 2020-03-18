@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: deploy02
+    tier: backend
+  name: deploy02
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: deploy02
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: deploy02
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}
